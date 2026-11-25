@@ -1,6 +1,6 @@
 // 공통 API (KHS): 상태 확인, 로그인(C-08), 주간 실행·현황(C-06)
 import { apiFetch, clearToken, setToken } from "./client";
-import type { Health, LoginResponse, Me, Run, RunStatus } from "../types/core";
+import type { AiProvider, AiStatus, AiTest, Health, LoginResponse, Me, Run, RunStatus } from "../types/core";
 
 export const getHealth = () => apiFetch<Health>("/core/health");
 
@@ -32,3 +32,14 @@ export const createRun = (referenceDate?: string) =>
 export const getLatestRun = () => apiFetch<Run | null>("/core/runs/latest");
 
 export const getRunStatus = (runId: number) => apiFetch<RunStatus>(`/core/runs/${runId}/status`);
+
+// AI 연결 상태·연결 검사·모델 선택 (C-02)
+export const getAiStatus = () => apiFetch<AiStatus>("/core/ai/status");
+
+export const setAiChoice = (provider: AiProvider, model: string) =>
+  apiFetch<AiStatus>("/core/ai/settings", {
+    method: "PUT",
+    body: JSON.stringify({ provider, model }),
+  });
+
+export const testAi = () => apiFetch<AiTest>("/core/ai/test", { method: "POST" });

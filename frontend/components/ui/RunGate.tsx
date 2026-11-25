@@ -9,7 +9,16 @@ import { ErrorState } from "./ErrorState";
 import { Loading } from "./Loading";
 import { color } from "./tokens";
 
-export function RunGate({ title, children }: { title: string; children: (run: Run) => ReactNode }) {
+export function RunGate({
+  title,
+  aside,
+  children,
+}: {
+  title: string;
+  /** 실행이 없어도 제목 아래에 늘 보이는 부분 (예: AI 연결 상태) */
+  aside?: ReactNode;
+  children: (run: Run) => ReactNode;
+}) {
   const state = useCurrentRun();
   return (
     <>
@@ -21,6 +30,7 @@ export function RunGate({ title, children }: { title: string; children: (run: Ru
           </span>
         )}
       </div>
+      {aside}
       {state.kind === "loading" && <Loading />}
       {state.kind === "error" && <ErrorState message={state.message} />}
       {state.kind === "none" && (

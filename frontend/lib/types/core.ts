@@ -184,3 +184,30 @@ export interface RunStatus {
   run: Run;
   stages: StageStatus[];
 }
+
+// AI 연결 상태 (C-02). backend/app/core/llm.py와 같은 모양. 키 값은 오지 않는다.
+export type AiProvider = "openai" | "claude";
+export type AiState = "off" | "no_key" | "no_model" | "ready" | "ok" | "error";
+
+export interface AiTest {
+  ok: boolean;
+  message: string;
+  provider: AiProvider;
+  model: string;
+  checked_at: string;
+  elapsed_ms: number;
+  available_models: string[];
+}
+
+export interface AiStatus {
+  enabled: boolean;
+  provider: AiProvider;
+  provider_label: string;
+  model: string;
+  key_set: boolean;
+  state: AiState;
+  state_label: string;
+  models: string[];
+  providers: AiProvider[];
+  last_test: AiTest | null;
+}
