@@ -3,12 +3,18 @@
 출처(같은 ID면 앞 출처 우선): 법제처 API → 구글 드라이브 법령 폴더(DRIVE_LAW_FOLDER_ID)
 → Supabase 공개 DB(pub_law_change).
 
+- sources.json law_api의 mode="demo"면 samples/b1_input/demo/law_api/*.json
+  (저장해 둔 응답)만 읽는다.
+  외부 호출(법제처·드라이브·Supabase)을 하지 않으므로 LAW_API_OC가 없어도 돈다.
+- mode="auto"면 위 세 출처(법제처 API → 드라이브 → Supabase)를 읽는다.
 한 출처가 실패해도 다른 출처는 계속하고, 실패 이유를 돌려준다.
 담당자가 고친 final_summary·related_food_types는 덮어쓰지 않는다.
 """
 
 import json
 from datetime import date
+from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -34,6 +40,35 @@ class LawFetchResult(BaseModel):
     found: int
     added: int
     errors: list[str] = Field(default_factory=list)
+
+
+def law_source() -> dict[str, Any]:
+    data = json.loads(SOURCES_JSON.read_text(encoding="utf-8"))
+    cfg: dict[str, Any] = next((s for s in data["sources"] if s["id"] == "law_api"), {})
+    return cfg
+
+
+def _demo_dir(cfg: dict[str, Any]) -> Path:
+    raw = cfg.get("demo_file") or "samples/b1_input/demo/law_api"
+    p = Path(raw)
+    return p if p.is_absolute() else REPO_ROOT / p
+
+
+def _from_demo(cfg: dict[str, Any], errors: list[str]) -> list[LawChange]:
+    """저장해 둔 응답 파일 하나 = {"search": 검색 결과 1행, "detail": 본문}."""
+    folder = _demo_dir(cfg)
+    files = sorted(folder.glob("*.json")) if folder.is_dir() else []
+    if not files:
+        errors.append(f"법령 데모 응답 없음: {folder.name}")
+        return []
+    out: list[LawChange] = []
+    for f in files:
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+            out.append(summarize.from_admrul(data["search"], data.get("detail")))
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            errors.append(f"{f.name}: 형식 오류 {e}")
+    return out
 
 
 def targets() -> list[str]:
@@ -98,9 +133,13 @@ def fetch(run_id: int) -> LawFetchResult:
         raise KeyError(run_id)
     start, end = date.fromisoformat(run.period_start), date.fromisoformat(run.period_end)
     errors: list[str] = []
-    found = {c.id: c for c in _from_law_api(errors)}
-    for c in _from_drive(errors) + _from_supabase(errors):
-        found.setdefault(c.id, c)
+    cfg = law_source()
+    if cfg.get("mode") == "demo":
+        found = {c.id: c for c in _from_demo(cfg, errors)}
+    else:
+        found = {c.id: c for c in _from_law_api(errors)}
+        for c in _from_drive(errors) + _from_supabase(errors):
+            found.setdefault(c.id, c)
     picked = new_in_force.pick(list(found.values()), start, end, reported.reported_ids())
     picked = crosscheck.crosscheck(picked, notices=[])
     existing = {c.id: c for c in repo.list_law(run_id)}
