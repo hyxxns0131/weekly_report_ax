@@ -1,56 +1,36 @@
 "use client";
-// 이번 주 현황 (C-06, KHS). DESIGN.md 3장.
+// 이번 주 현황 (C-06, KHS). DESIGN.md 3장: 진행 칸 2개 + 사람이 확인할 일.
+// 버튼은 [주간 실행 만들기](실행이 없을 때만)와 [이어서 하기]뿐이다.
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { Loading } from "../components/ui/Loading";
-import { createRun, getLatestRun, getRunStatus } from "../lib/api/core";
-import type { RunStatus } from "../lib/types/core";
-import { RunHeader } from "./_components/RunHeader";
-import { StageTable } from "./_components/StageTable";
+import { useRunStatus } from "../components/ui/RunStatusContext";
+import { createRun } from "../lib/api/core";
+import { LaneCard } from "./_components/LaneCard";
+import { TodoList } from "./_components/TodoList";
 
 const TEXT = {
+  title: "이번 주 현황",
   empty: "이번 주 실행이 없습니다.",
   create: "주간 실행 만들기",
-  loadFailed: "현황을 불러오지 못했습니다",
+  createFailed: "주간 실행을 만들지 못했습니다",
 };
 
-type State =
-  | { kind: "loading" }
-  | { kind: "empty" }
-  | { kind: "error"; message: string }
-  | { kind: "ok"; data: RunStatus };
-
 export default function HomePage() {
-  const [state, setState] = useState<State>({ kind: "loading" });
+  const { state, reload } = useRunStatus();
   const [busy, setBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    setState({ kind: "loading" });
-    try {
-      const run = await getLatestRun();
-      if (!run) {
-        setState({ kind: "empty" });
-        return;
-      }
-      setState({ kind: "ok", data: await getRunStatus(run.id) });
-    } catch (e) {
-      setState({ kind: "error", message: e instanceof Error ? e.message : TEXT.loadFailed });
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const [error, setError] = useState<string | null>(null);
 
   async function onCreate() {
     setBusy(true);
+    setError(null);
     try {
       await createRun();
-      await load();
+      await reload();
     } catch (e) {
-      setState({ kind: "error", message: e instanceof Error ? e.message : TEXT.loadFailed });
+      setError(e instanceof Error ? e.message : TEXT.createFailed);
     } finally {
       setBusy(false);
     }
@@ -58,20 +38,29 @@ export default function HomePage() {
 
   return (
     <>
-      <RunHeader run={state.kind === "ok" ? state.data.run : null} onCreate={onCreate} busy={busy} />
+      <h1 style={{ margin: "0 0 16px", fontSize: 22 }}>{TEXT.title}</h1>
+      {error && <ErrorState message={error} />}
       {state.kind === "loading" && <Loading />}
-      {state.kind === "error" && <ErrorState message={state.message} onRetry={load} />}
-      {state.kind === "empty" && (
+      {state.kind === "error" && <ErrorState message={state.message} onRetry={reload} />}
+      {state.kind === "none" && (
         <EmptyState
           message={TEXT.empty}
           action={
-            <button type="button" onClick={onCreate} disabled={busy}>
+            <button type="button" className="primary" onClick={onCreate} disabled={busy}>
               {TEXT.create}
             </button>
           }
         />
       )}
-      {state.kind === "ok" && <StageTable stages={state.data.stages} />}
+      {state.kind === "ok" && (
+        <>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <LaneCard group="b1" status={state.status} />
+            <LaneCard group="b2" status={state.status} />
+          </div>
+          <TodoList todos={state.status.todos} />
+        </>
+      )}
     </>
   );
 }
