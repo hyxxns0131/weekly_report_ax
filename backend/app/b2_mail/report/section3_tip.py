@@ -1,7 +1,7 @@
 """섹션 3 오늘의 팁 (B2-07, RULES.md 12장). 근거 없는 팁은 넣지 않는다.
 
 - 근거 있음 = "근거:" 또는 "출처:"로 시작하는 줄 + 링크(http…)가 팁 글 안에 모두 있음.
-- 근거가 없으면 본문은 "해당 없음", 담당자 확인용(발송 전 삭제)에 이유를 적는다.
+- 근거가 없으면 본문은 "해당 없음", 담당자 확인용(check_lines, 보고서 맨 끝)에 이유를 적는다.
 - "최신본 확인 필요"가 남아 있으면 넣되 담당자 확인용에 알린다.
 - 문구는 config/b2/report.json의 "section3"에만 둔다.
 """
@@ -33,20 +33,20 @@ def _body(tip: str) -> list[str]:
     return [f"   - {lines[0].strip()}", *(f"     {ln.strip()}" for ln in lines[1:])]
 
 
-def render(tip: str | None, empty: str, staff: bool = False) -> str:
-    """staff=True: 담당자용(확인용 칸 포함). False: 고객사 메일처럼 본문만."""
+def render(tip: str | None, empty: str) -> str:
+    """본문만 만든다 (담당자용·고객사 메일 공통). 근거 없는 팁은 넣지 않는다."""
     t = _text()
-    ok = has_basis(tip)
-    body = [f"   {t['intro']}", *_body(tip)] if tip and ok else [f"   {empty}"]
-    if not staff:
-        return "\n".join(body)
-    check: list[str] = []
-    if not tip:
-        check.append(f"  ■ {t['check_no_tip']}")
-    elif not ok:
-        check.append(f"  ■ {t['check_no_basis']}")
-    elif t["latest_marker"] in tip:
-        check.append(f"  ■ {t['check_latest']}")
-    if check:
-        body += ["", f"  {t['check_title']}", *check]
+    body = [f"   {t['intro']}", *_body(tip)] if tip and has_basis(tip) else [f"   {empty}"]
     return "\n".join(body)
+
+
+def check_lines(tip: str | None) -> list[str]:
+    """담당자 확인용(발송 전 삭제): 팁 없음, 근거 없음, 최신본 확인 필요."""
+    t = _text()
+    if not tip:
+        return [f"  ■ {t['check_no_tip']}"]
+    if not has_basis(tip):
+        return [f"  ■ {t['check_no_basis']}"]
+    if t["latest_marker"] in tip:
+        return [f"  ■ {t['check_latest']}"]
+    return []

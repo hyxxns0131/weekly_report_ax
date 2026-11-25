@@ -15,15 +15,17 @@ def _item(items: list[SelectedItem], key: str) -> SelectedItem:
     return next(i for i in items if i.raw.id.endswith(key))
 
 
-def _staff_body(text: str) -> str:
-    """담당자 확인용 칸 앞까지 (발송되는 본문)."""
-    return text.split("(담당자 확인용")[0]
+def _both(items: list[SelectedItem], names: dict[str, str]) -> tuple[str, str]:
+    """(본문, 담당자 확인 목록)."""
+    picked = s1.pick(items)
+    body = s1.render(picked, names, EMPTY)
+    check = "\n".join(s1.check_lines(picked, names, s1.pick_review(items)))
+    return body, check
 
 
 def test_staff_body_has_related_only_and_same_maker_first() -> None:
     items, names = _sample()
-    text = s1.render(s1.pick(items), names, EMPTY, review=s1.pick_review(items))
-    body = _staff_body(text)
+    body, _ = _both(items, names)
     assert "■ 우리 고객사 관련 부적합 (2건)" in body
     assert body.index("샘플 위스키") < body.index("샘플 레드와인")  # 같은 제조사 건이 먼저
     assert "【같은 제조사】 [2026-11-17] 영국 / 가상 증류소 X / [위스키]" in body
@@ -35,8 +37,7 @@ def test_staff_body_has_related_only_and_same_maker_first() -> None:
 
 def test_review_items_listed_in_check_block() -> None:
     items, names = _sample()
-    text = s1.render(s1.pick(items), names, EMPTY, review=s1.pick_review(items))
-    check = text.split("(담당자 확인용 · 발송 전 삭제)")[1]
+    _, check = _both(items, names)
     assert "■ 검토 필요 · 선별 확인 후 반영 (1건)" in check
     assert "샘플 쌀과자 / 사유: 식품유형은 맞지만" in check
 
@@ -55,8 +56,7 @@ def test_final_values_override_ai() -> None:
     whisky.matches[0].final_matched = False  # 담당자가 A사 관련을 지움
     rice = _item(items, "unfit-3")
     rice.selection.final_label = Label.relevant  # 담당자가 검토 필요 → 관련으로 확정
-    text = s1.render(s1.pick(items), names, EMPTY, review=s1.pick_review(items))
-    body, check = text.split("(담당자 확인용 · 발송 전 삭제)")
+    body, check = _both(items, names)
     assert "샘플 쌀과자" in body and "관련 화주: B사" in body
     assert "샘플 위스키" in check and "■ 고객사와 맞지 않은 부적합 (1건)" in check
     assert "■ 검토 필요" not in check
@@ -66,7 +66,7 @@ def test_empty_week_keeps_frame() -> None:
     text = s1.render([], {}, EMPTY)
     assert "■ 우리 고객사 관련 부적합 (0건)\n     이번 주 해당 없음." in text
     assert "■ 통관단계 검사지시 안내 (0건)\n     이번 주 해당 없음." in text
-    assert "담당자 확인용" not in text
+    assert s1.check_lines([], {}, []) == []
 
 
 def test_customer_mail_has_no_customer_names_or_check_block() -> None:
@@ -74,5 +74,5 @@ def test_customer_mail_has_no_customer_names_or_check_block() -> None:
     mine = [i for i in s1.pick(items) if "C001" in s1.matched_ids(i)]
     text = s1.render(mine, names, "귀사 해당 없음", show_customers=False)
     assert "샘플 위스키" in text and "샘플 레드와인" in text
-    assert "A사" not in text and "관련 화주" not in text and "담당자 확인용" not in text
+    assert "A사" not in text and "관련 화주" not in text
     assert s1.render([], names, "귀사 해당 없음", show_customers=False) == "  귀사 해당 없음"

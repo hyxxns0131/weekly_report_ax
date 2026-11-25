@@ -1,7 +1,8 @@
 """섹션 1 부적합·통관단계 검사지시 (DESIGN.md 10-1, 실제 예시 11월 4주차 형식).
 
 - 본문: 고객사 관련 부적합 + 고객사 관련 통관단계 검사지시. 같은 제조사 건을 맨 위에 둔다.
-- 담당자 확인용(발송 전 삭제): 고객사와 맞지 않은 부적합·검사지시, 그 밖의 관련 소식, 검토 필요.
+- 담당자 확인용(발송 전 삭제, check_lines): 고객사와 맞지 않은 부적합·검사지시,
+  그 밖의 관련 소식, 검토 필요. 보고서 맨 끝에 모은다.
 - 숫자·날짜는 입력 값만 쓰고, 빈 칸은 "확인 필요". 판단 값은 final_*가 있으면 그것을 쓴다.
 - 문구는 config/b2/report.json의 "section1"에만 둔다.
 """
@@ -121,18 +122,22 @@ def _sorted(items: list[SelectedItem]) -> list[SelectedItem]:
     return sorted(items, key=lambda i: not same_maker(i))  # 같은 제조사 건이 먼저
 
 
-def render(
-    items: list[SelectedItem],
-    names: dict[str, str],
-    empty: str,
-    show_customers: bool = True,
-    review: list[SelectedItem] | None = None,
-) -> str:
-    """show_customers=True: 담당자용(본문 + 담당자 확인용). False: 고객사 메일(그 고객사 항목만)."""
-    t = _text()
+def _split(items: list[SelectedItem]) -> tuple[list[SelectedItem], ...]:
     unfit = [i for i in items if category_of(i) in UNFIT]
     insp = [i for i in items if category_of(i) in INSPECTION]
     other = [i for i in items if i not in unfit and i not in insp]
+    return unfit, insp, other
+
+
+def render(
+    items: list[SelectedItem], names: dict[str, str], empty: str, show_customers: bool = True
+) -> str:
+    """본문만 만든다. show_customers=True: 담당자용. False: 고객사 메일(그 고객사 항목만).
+
+    담당자 확인용 목록은 check_lines()로 따로 받아 service.py가 보고서 맨 끝에 모은다.
+    """
+    t = _text()
+    unfit, insp, other = _split(items)
 
     if not show_customers:
         if not items:
@@ -145,22 +150,26 @@ def render(
 
     related_unfit = _sorted([i for i in unfit if matched_ids(i)])
     related_insp = _sorted([i for i in insp if matched_ids(i)])
-    no_unfit = [i for i in unfit if not matched_ids(i)]
-    no_insp = [i for i in insp if not matched_ids(i)]
-    review = review or []
-    group_empty = empty  # 매주 같은 틀: 본문 묶음은 비어도 남기고 "해당 없음"을 넣는다
-
+    # 매주 같은 틀: 본문 묶음은 비어도 남기고 "해당 없음"을 넣는다
     out = [f"  {s}" for s in t["intro"]]
     out.append(f"  {t['source_unfit']}")
-    out += _group(t["group_related"], [line(i, names, True) for i in related_unfit], group_empty)
+    out += _group(t["group_related"], [line(i, names, True) for i in related_unfit], empty)
     out.append(f"  {t['source_inspection']}")
-    out += _group(t["group_inspection"], [line(i, names, True) for i in related_insp], group_empty)
-
-    check: list[str] = []
-    check += _group(t["group_unmatched_unfit"], [line(i, names, True) for i in no_unfit], None)
-    check += _group(t["group_unmatched_inspection"], [line(i, names, True) for i in no_insp], None)
-    check += _group(t["group_other"], [line(i, names, True) for i in other], None)
-    check += _group(t["group_review"], [_review_line(i) for i in review], None)
-    if check:
-        out += ["", f"  {t['check_title']}", *check]
+    out += _group(t["group_inspection"], [line(i, names, True) for i in related_insp], empty)
     return "\n".join(out)
+
+
+def check_lines(
+    items: list[SelectedItem], names: dict[str, str], review: list[SelectedItem]
+) -> list[str]:
+    """담당자 확인용(발송 전 삭제): 고객사와 맞지 않은 부적합·검사지시, 그 밖의 소식, 검토 필요."""
+    t = _text()
+    unfit, insp, other = _split(items)
+    no_unfit = [i for i in unfit if not matched_ids(i)]
+    no_insp = [i for i in insp if not matched_ids(i)]
+    out: list[str] = []
+    out += _group(t["group_unmatched_unfit"], [line(i, names, True) for i in no_unfit], None)
+    out += _group(t["group_unmatched_inspection"], [line(i, names, True) for i in no_insp], None)
+    out += _group(t["group_other"], [line(i, names, True) for i in other], None)
+    out += _group(t["group_review"], [_review_line(i) for i in review], None)
+    return out

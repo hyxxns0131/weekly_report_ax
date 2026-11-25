@@ -5,7 +5,7 @@
 - 법령명·번호·날짜·조항은 입력(b1, 원문) 값만 쓰고, 빈 칸은 "확인 필요".
 - 개정 요지는 담당자 수정본(final_summary)이 있으면 그것을, 없으면 AI 요약을 쓴다.
 - b1이 "새로 시행된 개정, 이미 보고한 것 제외"로 거른 목록은 본문에 모두 넣는다(누락 방지).
-  사람이 봐야 하는 건 빼지 않고 담당자 확인용(발송 전 삭제)에 함께 적는다.
+  사람이 봐야 하는 건 빼지 않고 담당자 확인용(check_lines, 보고서 맨 끝)에 함께 적는다.
 - 새 개정이 없는 주: "해당 없음" 문장. 담당자가 재안내 글을 저장했으면 그 글을 넣는다.
 - 문구는 config/b2/report.json의 "section2"에만 둔다.
 """
@@ -62,9 +62,10 @@ def _group(title: str, lines: list[str]) -> list[str]:
     return [f"  ■ {title} ({len(lines)}건)", *lines] if lines else []
 
 
-def _check(
+def check_lines(
     changes: list[LawChange], period: tuple[date, date], reannounce: str | None
 ) -> list[str]:
+    """담당자 확인용(발송 전 삭제): 요약 미확인, 대조 불일치, 기간 밖, 재안내 안내."""
     t = _text()
     out: list[str] = []
     out += _group(t["check_unconfirmed"], [_short(c) for c in changes if not c.final_summary])
@@ -80,13 +81,8 @@ def _check(
     return out
 
 
-def render(
-    changes: list[LawChange],
-    empty: str,
-    reannounce: str | None = None,
-    period: tuple[date, date] | None = None,
-) -> str:
-    """period를 주면 담당자용(확인용 칸 포함). 안 주면 고객사 메일처럼 본문만."""
+def render(changes: list[LawChange], empty: str, reannounce: str | None = None) -> str:
+    """본문만 만든다 (담당자용·고객사 메일 공통). 확인용 목록은 check_lines()."""
     t = _text()
     if changes:
         body = [line(c) for c in changes]
@@ -94,9 +90,4 @@ def render(
         body = [f"   {t['reannounce_intro']}", *(f"   {ln}" for ln in reannounce.splitlines())]
     else:
         body = [f"   {empty}"]
-    if period is None:
-        return "\n".join(body)
-    check = _check(changes, period, reannounce)
-    if check:
-        body += ["", f"  {t['check_title']}", *check]
     return "\n".join(body)
