@@ -1,4 +1,4 @@
-"""Supabase 공개 정보 DB(weekly-report)에서 보고 기간의 원문 가져오기.
+"""Supabase 공개 정보 DB(weekly-report-ax)에서 보고 기간의 원문 가져오기.
 
 PM(HS)이 Supabase에 적재한 공개 정보(부적합·검사지시·법령 개정·수집 원문)를 원문 항목으로 만든다.
 DB가 비어 있으면 0건이다. 키가 없으면 실패로 남기고 다른 출처는 계속한다.
