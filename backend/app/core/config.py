@@ -51,6 +51,10 @@ class Settings(BaseModel):
     collect_delay_sec: float = 2.0
     mail_send_enabled: bool = False
 
+    google_credentials_file: Path = REPO_ROOT / "credentials.json"
+    google_token_file: Path = REPO_ROOT / "token.json"
+    drive_law_folder_id: str = ""
+
     admin_username: str = ""
     admin_password: str = ""
     auth_secret_key: str = ""
@@ -96,6 +100,11 @@ def get_settings() -> Settings:
         collect_user_agent=env.get("COLLECT_USER_AGENT", "weekly_report-prototype"),
         collect_delay_sec=float(env.get("COLLECT_DELAY_SEC") or 2),
         mail_send_enabled=_bool(env.get("MAIL_SEND_ENABLED"), False),
+        google_credentials_file=_path(
+            env.get("GOOGLE_CREDENTIALS_FILE"), REPO_ROOT / "credentials.json"
+        ),
+        google_token_file=_path(env.get("GOOGLE_TOKEN_FILE"), REPO_ROOT / "token.json"),
+        drive_law_folder_id=(env.get("DRIVE_LAW_FOLDER_ID") or "").split("#")[0].strip(),
         admin_username=env.get("ADMIN_USERNAME", ""),
         admin_password=env.get("ADMIN_PASSWORD", ""),
         auth_secret_key=env.get("AUTH_SECRET_KEY", ""),
