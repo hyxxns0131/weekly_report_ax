@@ -45,7 +45,13 @@ def build(run_id: int, token: str | None, source: str = "api") -> tuple[ReportOu
     t = cfg["section_titles"]
     text = "\n\n".join(
         [
-            f"{t[0]}\n{section1_unfit.render(report.section1_items, names, cfg['empty_section1'])}",
+            f"{t[0]}\n"
+            + section1_unfit.render(
+                report.section1_items,
+                names,
+                cfg["empty_section1"],
+                review=section1_unfit.pick_review(ws.items),
+            ),
             f"{t[1]}\n{section2_law.render(report.section2_items, cfg['empty_section2'])}",
             f"{t[2]}\n{section3_tip.render(tip, cfg['empty_section3'])}",
         ]
