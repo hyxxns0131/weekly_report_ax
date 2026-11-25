@@ -19,6 +19,7 @@ from app.core.ai.router import router as ai_router
 from app.core.auth.deps import require_login
 from app.core.auth.router import router as auth_router
 from app.core.config import get_settings
+from app.core.connections.router import router as connections_router
 from app.core.runs.router import router as runs_router
 from app.core.storage.local_db import init_db
 
@@ -61,6 +62,7 @@ def health() -> Health:
 core_router.include_router(auth_router)  # login만 열림, logout·me는 각자 require_login
 core_router.include_router(runs_router, dependencies=[Depends(require_login)])
 core_router.include_router(ai_router, dependencies=[Depends(require_login)])
+core_router.include_router(connections_router, dependencies=[Depends(require_login)])
 
 app.include_router(core_router, prefix="/api/core")
 app.include_router(b1_router, prefix="/api/b1", dependencies=[Depends(require_login)])

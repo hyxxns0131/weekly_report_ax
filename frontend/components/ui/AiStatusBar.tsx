@@ -103,8 +103,8 @@ export function AiStatusBar({ usage }: { usage: string }) {
     gap: 10,
     padding: "10px 14px",
     margin: "0 0 16px",
-    background: color.surface,
-    border: `1px solid ${color.border}`,
+    background: color.card,
+    border: "1px solid transparent",
     borderRadius: 12,
   };
 
