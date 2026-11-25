@@ -31,6 +31,7 @@ def build(run_id: int, token: str | None, source: str = "api") -> tuple[ReportOu
     names = load_customer_names(token, source)
     saved = repo.get_report(run_id) or {}
     tip = saved.get("tip")
+    reannounce = saved.get("reannounce")
     cfg = config()
     report = WeeklyReport(
         run_id=run_id,
@@ -52,15 +53,36 @@ def build(run_id: int, token: str | None, source: str = "api") -> tuple[ReportOu
                 cfg["empty_section1"],
                 review=section1_unfit.pick_review(ws.items),
             ),
-            f"{t[1]}\n{section2_law.render(report.section2_items, cfg['empty_section2'])}",
+            f"{t[1]}\n"
+            + section2_law.render(
+                report.section2_items,
+                cfg["empty_section2"],
+                reannounce=reannounce,
+                period=(ws.period_start, ws.period_end),
+            ),
             f"{t[2]}\n{section3_tip.render(tip, cfg['empty_section3'])}",
         ]
     )
-    repo.save_report(run_id, {**report.model_dump(mode="json"), "tip": tip, "text": text})
+    repo.save_report(
+        run_id,
+        {
+            **report.model_dump(mode="json"),
+            "tip": tip,
+            "reannounce": reannounce,
+            "text": text,
+        },
+    )
     return ReportOut(report=report, text=text, review_needed=review, customer_names=names), ws
 
 
 def set_tip(run_id: int, tip: str | None) -> None:
     saved = repo.get_report(run_id) or {}
     saved["tip"] = tip or None
+    repo.save_report(run_id, saved)
+
+
+def set_reannounce(run_id: int, text: str | None) -> None:
+    """새 개정이 없는 주에 섹션 2에 넣을 재안내 글 (담당자가 근거와 함께 직접 쓴다)."""
+    saved = repo.get_report(run_id) or {}
+    saved["reannounce"] = text or None
     repo.save_report(run_id, saved)
