@@ -159,12 +159,12 @@ SAMC 검역 담당자가 매주 손으로 쓰던 **수입식품 주간 검역 �
 
 | ID | 기능 | 우선 | 구분 |
 |---|---|---|---|
-| C-01 | 공통 스키마·라우터 등록·메뉴 뼈대 | P0 | [신규] |
+| C-01 | 공통 스키마·라우터 등록·사이드바(역할 3개 + 설정)·단계 바 뼈대 (DESIGN.md 1-0) | P0 | [신규] |
 | C-02 | LLM 호출 래퍼(`AI_PROVIDER`, `LLM_ENABLED`, 구조화 출력 검증) | P0 | [신규] |
 | C-03 | 고객사명 가리기(`masking.py`) | P0 | [신규] |
 | C-04 | 로컬 SQLite·드라이브·Supabase 연결과 테이블 정의 | P0 | [신규] |
 | C-05 | 구글 인증 공통(`gmail_client.py`, 드라이브 공용) | P1 | [개선] 기존 도구 `token.json` 방식 |
-| C-06 | 이번 주 현황 화면 | P0 | [신규] |
+| C-06 | 이번 주 현황 화면 + 알림(이번 주 바뀐 점: 법령 개정·통관단계 검사지시, 읽음·지움 기록) (DESIGN.md 3장) | P0 | [신규] |
 | C-07 | exe 변환 | P2(마지막) | [신규] |
 | C-08 | 로그인(첫 화면). 관리자 계정 1개로 시작, 로그인 전에는 어떤 화면·API도 쓸 수 없음 | P0 | [신규] |
 
@@ -276,7 +276,9 @@ weekly_report/
 │  │  │  ├─ storage/                                (C-04, DB는 PM만)
 │  │  │  │  ├─ schema.sql                           로컬 테이블 정의 (고정)
 │  │  │  │  ├─ local_db.py   public_db.py   drive.py
-│  │  │  └─ runs/                                   주간 실행·현황 (C-06)
+│  │  │  ├─ ai/                                     AI 상태·모델 선택·연결 검사 API (C-02)
+│  │  │  ├─ connections/                            외부 연결 상태·연결 검사 (C-01, 연결 설정 화면)
+│  │  │  └─ runs/                                   주간 실행·현황·알림 (C-06)
 │  │  │     ├─ router.py   service.py
 │  │  │
 │  │  ├─ b1_select/                            LSH  ── 제안서 5번
@@ -357,16 +359,17 @@ weekly_report/
 ├─ frontend/                                   Next.js, 정적 export
 │  ├─ package.json  package-lock.json  next.config.ts                   KHS
 │  ├─ app/
-│  │  ├─ layout.tsx                            KHS  메뉴 7개 (고정)
-│  │  ├─ page.tsx                              KHS  이번 주 현황
+│  │  ├─ layout.tsx                            KHS  사이드바 3개 + 설정, 맨 위 줄, 알림 종 (고정, DESIGN.md 1-0)
+│  │  ├─ page.tsx                              KHS  이번 주 현황 (진행 칸 2개 + 사람이 확인할 일)
 │  │  ├─ login/        page.tsx                KHS  로그인 (C-08, 첫 화면)
+│  │  ├─ connections/  page.tsx                KHS  연결 설정 (외부 연결 상태·연결 검사·AI 모델 선택)
 │  │  ├─ collect/      page.tsx  _components/   LSH  수집·선별 (B1-01~09)
 │  │  ├─ customers/    page.tsx  _components/   LSH  고객사 판단 (B1-11)
 │  │  ├─ law/          page.tsx  _components/   LSH  법령 개정 (B1-12~14)
 │  │  ├─ settings/     page.tsx  _components/   LSH  설정 (B1-15)
 │  │  ├─ drafts/       page.tsx  _components/   KHW  보고서·메일 (B2-01~05)
 │  │  └─ evaluate/     page.tsx  _components/   KHW  검증 (B2-06)
-│  ├─ components/ui/                           KHS  Badge · Table · StatusBadge · EmptyState · ErrorState · Loading · tokens.ts
+│  ├─ components/ui/                           KHS  Badge · Table · StatusBadge · EmptyState · ErrorState · Loading · tokens.ts · StepBar · steps.ts · NoticeBell · NoticePopup · RunStatusContext
 │  └─ lib/
 │     ├─ api/client.ts   api/core.ts           KHS
 │     ├─ api/b1/  LSH   collect.ts · classify.ts · extract.ts · match.ts · law.ts · settings.ts
@@ -463,7 +466,7 @@ weekly_report/
 
 ### 5-4. 로컬 SQLite 테이블 (제안)
 
-`weekly_run`, `raw_item`, `selection`, `extracted_info`, `customer_match`, `law_change_work`, `weekly_report`, `mail_draft`, `mail_approval`, `eval_result`, `reported_law`(이미 보고한 개정, 기존 `weekly_reported.json` 역할).
+`weekly_run`, `raw_item`, `selection`, `extracted_info`, `customer_match`, `law_change_work`, `weekly_report`, `mail_draft`, `mail_approval`, `eval_result`, `reported_law`(이미 보고한 개정, 기존 `weekly_reported.json` 역할), `notice_state`(알림 읽음·지움 기록: notice_id, run_id, read_by, read_at, dismissed_by, dismissed_at. DESIGN.md 3-2, 11/25 추가 제안).
 
 ### 5-5. 공통 스키마 (`core/schema.py`, KHS 1일차 고정)
 
@@ -595,8 +598,12 @@ prefix: `/api/core`(KHS), `/api/b1`(LSH), `/api/b2`(KHW). 라우터 등록은 `m
 | GET | /api/core/ai/status | AI 연결 상태(꺼짐·키 없음·연결 확인 전·연결됨·연결 실패), 지금 AI 회사·모델, 모델 목록. 키 값은 돌려주지 않는다 | C-02 |
 | PUT | /api/core/ai/settings | AI 회사·모델 선택 `{provider, model}` 저장 | C-02 |
 | POST | /api/core/ai/test | 연결 검사(모델 목록 조회만, 토큰 비용 없음) | C-02 |
+| GET | /api/core/connections | 외부 연결 목록과 상태(AI·Supabase 읽기·쓰기·구글 드라이브·Gmail·법제처). 키·토큰 값은 돌려주지 않는다 | C-01 |
+| POST | /api/core/connections/{conn_id}/test | 그 연결만 다시 검사(읽기만, 1건 조회). 결과는 `data/connections.json` | C-01 |
 | POST | /api/core/runs | 주간 실행 만들기 `{reference_date}` → 보고 기간 계산 | C-06 |
-| GET | /api/core/runs/{run_id}/status | 단계별 진행 현황 | C-06 |
+| GET | /api/core/runs/{run_id}/status | 단계별 진행 현황 (현황 화면·단계 바 공용) | C-06 |
+| GET | /api/core/runs/{run_id}/notices | 알림 목록(법령 개정·통관단계 검사지시) + 읽음·지움 상태 (제안) | C-06 |
+| PATCH | /api/core/notices/{notice_id} | 알림 읽음·지움 `{action: "read" \| "dismiss"}`, 기록자는 로그인 사용자 (제안) | C-06 |
 | POST | /api/b1/runs/{run_id}/upload | 수동 업로드 (source 지정) | B1-01 |
 | POST | /api/b1/runs/{run_id}/collect | 자동 수집 (출처 선택) | B1-02~07 |
 | POST | /api/b1/runs/{run_id}/analyze | 선별 → 추출 → 고객사 판단 | B1-08~11 |
@@ -636,6 +643,7 @@ prefix: `/api/core`(KHS), `/api/b1`(LSH), `/api/b2`(KHW). 라우터 등록은 `m
 9. **화면에 AI 상태 표시:** AI를 쓰는 탭(수집·선별, 고객사 판단, 법령 개정, 보고서·메일, 설정)은 제목 아래에 `components/ui/AiStatusBar.tsx`를 둔다. 상태 배지 + AI 회사·모델 선택 + [연결 검사] 버튼. 선택은 한 곳에 저장되어 모든 탭에 같이 적용된다.
 10. **AI 회사·모델 선택:** 우선순위는 화면에서 고른 값(`data/ai_settings.json`, 커밋 안 함) > `.env`의 `AI_PROVIDER`·`OPENAI_MODEL`·`CLAUDE_MODEL` > `backend/config/ai_models.json` 첫 항목. 모델 목록은 `ai_models.json` 기본 목록에 연결 검사 때 받아 온 실제 목록을 더한다. 목록에 없는 모델은 "직접 입력"으로 넣는다.
 11. **키:** `OPENAI_API_KEY`·`ANTHROPIC_API_KEY`는 `.env`에만 둔다. 화면·API 응답·로그에 키 값을 내보내지 않는다("키 있음/없음"만).
+12. **연결 설정 화면(`/connections`):** AI와 다른 외부 연결(Supabase·구글 드라이브·Gmail·법제처)을 한 화면에 모은다. 연결마다 상태 배지 + [연결 검사], AI는 회사·모델 선택까지. 키를 넣거나 고친 뒤 [연결 검사]로 다시 확인한다. 검사는 읽기만 하고 쓰기·발송·토큰 소모를 하지 않는다.
 
 ---
 
@@ -679,7 +687,7 @@ prefix: `/api/core`(KHS), `/api/b1`(LSH), `/api/b2`(KHW). 라우터 등록은 `m
 
 | 단계 | 기간 | 내용 | 완료 기준 |
 |---|---|---|---|
-| 0 | 1일차 | KHS 뼈대: 4-1 트리 전체 폴더·빈 파일, `main.py`·`b1_select/router.py`·`b2_mail/router.py` 라우터 등록, 메뉴, `schema.py`, `period.py`, `schema.sql`, 로그인(C-08), 샘플 JSON | 로그인 화면 → 로그인 후 빈 화면 7개 열림, `/api/core/health` 응답 |
+| 0 | 1일차 | KHS 뼈대: 4-1 트리 전체 폴더·빈 파일, `main.py`·`b1_select/router.py`·`b2_mail/router.py` 라우터 등록, 사이드바·단계 바(DESIGN.md 1-0), `schema.py`, `period.py`, `schema.sql`, 로그인(C-08), 샘플 JSON | 로그인 화면 → 로그인 후 사이드바 3개 + 설정, 빈 화면 7개 열림, `/api/core/health` 응답 |
 | 1 (P0) | 1주차 | 수동 업로드 → 선별 → 추출 → 고객사 판단 → 법령 API 요약 → 보고서 → 메일 초안 | 지난주 가짜·공개 자료로 메일 초안까지 화면에서 확인 |
 | 2 (P1) | 2주차 | 자동 수집기, crosscheck, Gmail 초안·승인·발송, 검증 화면 | 과거 보고서 1주치로 지표 계산 |
 | 3 (P2) | 여유 시 | 오늘의 팁, 정확도 고도화 | |
@@ -748,7 +756,7 @@ AGENTS.md 0장과 4장, RULES.md 4장 "KHS 1일차 세팅 순서"를 따른다.
 4-1 트리의 모든 폴더와 빈 파일(__init__.py, 빈 router.py·service.py, 빈 페이지)을 만든다.
 backend/app/main.py에 core·b1·b2 라우터 등록, b1_select/router.py·b2_mail/router.py에 하위 라우터 전부 등록,
 core/schema.py에 5-5의 모델 8종, core/period.py에 보고 기간·주차 계산, core/storage/schema.sql에 5-4 테이블,
-frontend/app/layout.tsx에 DESIGN.md 1장 메뉴, samples/b1_output/sample_week.json(가상 고객사 A사·B사)을 만든다.
+frontend/app/layout.tsx에 DESIGN.md 1-0 사이드바·맨 위 줄·알림 종, samples/b1_output/sample_week.json(가상 고객사 A사·B사)을 만든다.
 각 화면은 빈 페이지만. 끝나면 0-10 완료 기준을 확인하고 바꾼 파일 목록을 보고한다.
 ```
 

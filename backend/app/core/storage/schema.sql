@@ -162,3 +162,14 @@ CREATE TABLE IF NOT EXISTS collect_log (
     at          TEXT NOT NULL,
     PRIMARY KEY (run_id, source)
 );
+
+-- 알림(이번 주 바뀐 점) 읽음·지움 기록 (DESIGN.md 3-2, 11/25 추가).
+-- 소식 id는 원래 데이터 id: 법령은 LawChange.id, 검사지시는 'inspection:{item_id}'.
+CREATE TABLE IF NOT EXISTS notice_state (
+    notice_id     TEXT PRIMARY KEY,
+    run_id        INTEGER REFERENCES weekly_run(id),
+    read_by       TEXT,
+    read_at       TEXT,
+    dismissed_by  TEXT,
+    dismissed_at  TEXT
+);

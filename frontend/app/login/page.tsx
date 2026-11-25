@@ -40,12 +40,12 @@ export default function LoginPage() {
   const field = { display: "block", width: "100%", padding: 8, marginTop: 4, boxSizing: "border-box" as const };
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", background: "linear-gradient(160deg, #e3f2fd 0%, #ffffff 60%)" }}>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", background: color.frame }}>
       <form
         onSubmit={onSubmit}
-        style={{ width: 360, padding: 36, background: color.surface, border: `1px solid ${color.border}`, borderRadius: 16, boxShadow: "0 8px 24px rgba(21, 101, 192, 0.12)" }}
+        style={{ width: 360, padding: 36, background: color.surface, borderRadius: 28, boxShadow: "0 12px 40px rgba(10, 40, 100, 0.25)" }}
       >
-        <h1 style={{ fontSize: 22, marginTop: 0, color: color.info }}>{TEXT.title}</h1>
+        <h1 style={{ fontSize: 22, marginTop: 0, color: color.primary }}>{TEXT.title}</h1>
         <label style={{ display: "block", marginBottom: 12 }}>
           {TEXT.username}
           <input style={field} value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />

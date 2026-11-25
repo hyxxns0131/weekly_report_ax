@@ -119,7 +119,7 @@ main            ← 최종 안정 버전 (PM만 반영, PR 승인 필수)
 | `backend/app/core/storage/schema.sql`, `supabase/migrations/` | KHS (DB, PM만) | 변경 요청만 |
 | `backend/app/b1_select/router.py` (하위 라우터 7개) | LSH | 1일차 뒤 고정. 엔드포인트는 기능 폴더 `router.py`에 |
 | `backend/app/b2_mail/router.py` (하위 라우터 5개) | KHW | 1일차 뒤 고정. 엔드포인트는 기능 폴더 `router.py`에 |
-| `frontend/app/layout.tsx` (메뉴 7개) | KHS | 변경 요청만 |
+| `frontend/app/layout.tsx` (사이드바 3개 + 설정, 맨 위 줄, 알림 종) | KHS | 변경 요청만 |
 
 **백엔드 기능 폴더**
 
@@ -158,10 +158,10 @@ main            ← 최종 안정 버전 (PM만 반영, PR 승인 필수)
 
 | 경로 | 주인 | 비고 |
 |---|---|---|
-| `frontend/app/page.tsx` (이번 주 현황), `app/login/` (로그인) | KHS | |
+| `frontend/app/page.tsx` (이번 주 현황), `app/login/` (로그인), `app/connections/` (연결 설정) | KHS | |
 | `frontend/app/collect/`, `customers/`, `law/`, `settings/` | LSH | `_components/`에 기능별 부품 파일 (예: `UploadPanel.tsx`, `ClassifyTable.tsx`) |
 | `frontend/app/drafts/`, `evaluate/` | KHW | 같음 (예: `ReportPreview.tsx`, `DraftEditor.tsx`, `SendPanel.tsx`) |
-| `frontend/components/ui/` | KHS | 변경 요청. 바꿀 때는 LSH·KHW 둘 다 리뷰어로 (모든 화면에 영향) |
+| `frontend/components/ui/` | KHS | 변경 요청. 바꿀 때는 LSH·KHW 둘 다 리뷰어로 (모든 화면에 영향). 단계 바(`StepBar.tsx`·`steps.ts`)와 알림(`NoticeBell.tsx`·`NoticePopup.tsx`)도 여기 |
 | `frontend/lib/api/client.ts`, `core.ts`, `lib/types/core.ts` | KHS | `types/core.ts`는 `schema.py`와 같게 |
 | `frontend/lib/api/b1/<기능>.ts`, `lib/types/b1.ts` | LSH | `collect·classify·extract·match·law·settings` |
 | `frontend/lib/api/b2/<기능>.ts`, `lib/types/b2.ts` | KHW | `report·drafts·send·evaluate·tips` |
@@ -182,7 +182,7 @@ main            ← 최종 안정 버전 (PM만 반영, PR 승인 필수)
 2. `main.py`: `/api/core`, `/api/b1`, `/api/b2` 라우터 등록 (이후 고정)
 3. 로그인(C-08): `core/auth/`, `app/login/page.tsx`, `layout.tsx`의 로그인 확인, `client.ts`의 토큰 붙이기, `main.py`에서 b1·b2 라우터에 `require_login` 걸기
 4. `b1_select/router.py`: collect·classify·extract·match·law·settings·result 하위 라우터 7개 등록, `b2_mail/router.py`: report·draft·send·evaluate·tips 하위 라우터 5개 등록 (이후 고정)
-5. `layout.tsx`: 메뉴 7개(현황·수집 선별·고객사 판단·법령 개정·보고서 메일·검증·설정) (이후 고정)
+5. `layout.tsx`: 사이드바 3개(이번 주 현황·재료 준비·보고서·메일) + 맨 아래 설정, 맨 위 줄(보고 주차·알림 종), `components/ui/StepBar.tsx`·`steps.ts` (이후 고정, DESIGN.md 1-0)
 6. `core/schema.py`: AGENTS.md 5-5 모델 8종 (이후 고정), `lib/types/core.ts` 같은 모양
 7. `core/period.py`: 보고 기간·주차 계산
 8. `core/storage/schema.sql`: AGENTS.md 5-4 테이블
@@ -196,7 +196,7 @@ main            ← 최종 안정 버전 (PM만 반영, PR 승인 필수)
 |---|---|---|
 | `main.py`, `b1_select/router.py`, `b2_mail/router.py` | 모두가 라우터를 등록하려 함 | 1일차에 하위 라우터를 전부 등록해 두고 고정. 엔드포인트는 기능 폴더 `router.py`에만 |
 | `core/schema.py`, `lib/types/core.ts` | 모두가 칸을 추가하려 함 | KHS만 고친다. 변경 요청 → KHS가 한 PR로 반영 → 모두 `git pull origin dev` |
-| `layout.tsx`(메뉴) | 화면을 늘릴 때마다 메뉴 수정 | 메뉴 7개를 1일차에 고정. 화면 안 탭은 각자 `page.tsx`에서 |
+| `layout.tsx`(사이드바), `components/ui/steps.ts`(단계 목록) | 화면을 늘릴 때마다 메뉴·단계 수정 | 사이드바 3개 + 설정과 단계 목록을 1일차에 고정. 단계 안 화면은 각자 `page.tsx`에서 `?step=`으로 나눈다 |
 | `package.json`, `package-lock.json` | 각자 `npm install` 하면 lock 파일이 통째로 바뀜 | KHS만 설치. 다른 사람은 `npm ci`만 |
 | `requirements/*.txt` | 같은 줄에 서로 다른 버전 추가 | b1·b2 파일 분리, `==` 고정, 알파벳 순으로 한 줄씩 |
 | `samples/b1_output/*.json` | LSH 스키마 변경과 KHW 테스트가 동시에 바뀜 | LSH만 고친다. 바꿀 때 PR에 "샘플 바뀜"을 적고 KHW에게 알림 |
