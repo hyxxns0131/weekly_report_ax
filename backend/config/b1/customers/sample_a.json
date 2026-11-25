@@ -1,0 +1,12 @@
+{
+  "customer_id": "C001",
+  "display_name": "A사",
+  "note": "가상 고객사. 실제 고객사 설정은 구글 드라이브에만 둔다.",
+  "keywords": [
+    { "origin_country": "영국", "food_type": "위스키" },
+    { "origin_country": "프랑스", "food_type": "과실주" },
+    { "origin_country": null, "food_type": "일반증류주" }
+  ],
+  "makers": ["가상 증류소 X"],
+  "hs_codes": ["2208.30"]
+}

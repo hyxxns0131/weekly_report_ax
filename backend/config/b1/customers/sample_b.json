@@ -1,0 +1,11 @@
+{
+  "customer_id": "C002",
+  "display_name": "B사",
+  "note": "가상 고객사. 실제 고객사 설정은 구글 드라이브에만 둔다.",
+  "keywords": [
+    { "origin_country": "베트남", "food_type": "과자" },
+    { "origin_country": "태국", "food_type": "소스" }
+  ],
+  "makers": ["가상 식품 Y"],
+  "hs_codes": []
+}

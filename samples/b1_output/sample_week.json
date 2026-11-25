@@ -1,0 +1,231 @@
+{
+  "_note": "b2 개발용 가짜 데이터 (KHS 1일차 초안, 이후 LSH 관리). 제품·회사·고시·번호·날짜는 모두 가상이며 실제 정보가 아니다. 모양은 core/schema.py WeeklySelection.",
+  "run_id": 1,
+  "period_start": "2026-11-16",
+  "period_end": "2026-11-22",
+  "week_label": "2026년 11월 3주차",
+  "items": [
+    {
+      "raw": {
+        "id": "manual:sample-unfit-1",
+        "run_id": 1,
+        "source": "manual",
+        "title": "[가상] 위스키 부적합",
+        "body": "[가상] 제품명 샘플 위스키 12년, 식품유형 위스키, 제조국 영국, 제조사 가상 증류소 X, 메탄올 기준 초과",
+        "posted_at": "2026-11-17",
+        "url": "https://example.com/sample/unfit/1",
+        "collected_at": "2026-11-23T09:00:00+09:00"
+      },
+      "selection": {
+        "item_id": "manual:sample-unfit-1",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "unfit",
+        "final_category": null,
+        "ai_reason": "수입식품 부적합 공개 목록 항목",
+        "evidence_quote": "메탄올 기준 초과",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "manual:sample-unfit-1",
+        "product_name_ko": "샘플 위스키 12년",
+        "product_name_en": "Sample Whisky 12Y",
+        "food_type_raw": "위스키",
+        "food_type_std": "위스키",
+        "origin_country": "영국",
+        "export_country": "영국",
+        "maker": "가상 증류소 X",
+        "hs_code": null,
+        "violation": "메탄올 기준 초과 (가상 값)",
+        "action": "반송 또는 폐기",
+        "office": "가상 지방청",
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "manual:sample-unfit-1",
+          "customer_id": "C001",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "maker",
+          "confidence": "high",
+          "reason": "같은 제조사 수입 이력: 가상 증류소 X (A사)"
+        }
+      ]
+    },
+    {
+      "raw": {
+        "id": "manual:sample-unfit-2",
+        "run_id": 1,
+        "source": "manual",
+        "title": "[가상] 과실주 부적합",
+        "body": "[가상] 제품명 샘플 레드와인, 식품유형 과실주, 제조국 프랑스, 제조사 가상 와이너리 Z, 보존료 기준 초과",
+        "posted_at": "2026-11-18",
+        "url": "https://example.com/sample/unfit/2",
+        "collected_at": "2026-11-23T09:00:00+09:00"
+      },
+      "selection": {
+        "item_id": "manual:sample-unfit-2",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "unfit",
+        "final_category": null,
+        "ai_reason": "수입식품 부적합 공개 목록 항목",
+        "evidence_quote": "보존료 기준 초과",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "manual:sample-unfit-2",
+        "product_name_ko": "샘플 레드와인",
+        "product_name_en": "Sample Red Wine",
+        "food_type_raw": "과실주",
+        "food_type_std": "과실주",
+        "origin_country": "프랑스",
+        "export_country": "프랑스",
+        "maker": "가상 와이너리 Z",
+        "hs_code": null,
+        "violation": "보존료 기준 초과 (가상 값)",
+        "action": "반송 또는 폐기",
+        "office": "가상 지방청",
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "manual:sample-unfit-2",
+          "customer_id": "C001",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "origin_food_type",
+          "confidence": "high",
+          "reason": "원산지 '프랑스' + 식품유형 '과실주' 일치 (A사 키워드)"
+        }
+      ]
+    },
+    {
+      "raw": {
+        "id": "manual:sample-unfit-3",
+        "run_id": 1,
+        "source": "manual",
+        "title": "[가상] 과자 부적합",
+        "body": "[가상] 제품명 샘플 쌀과자, 식품유형 과자, 제조국 베트남, 제조사 가상 제과 W, 산가 기준 초과",
+        "posted_at": "2026-11-19",
+        "url": "https://example.com/sample/unfit/3",
+        "collected_at": "2026-11-23T09:00:00+09:00"
+      },
+      "selection": {
+        "item_id": "manual:sample-unfit-3",
+        "ai_label": "review_needed",
+        "final_label": null,
+        "ai_category": "unfit",
+        "final_category": null,
+        "ai_reason": "식품유형은 맞지만 제조사 이력이 없어 검토 필요",
+        "evidence_quote": "산가 기준 초과",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "manual:sample-unfit-3",
+        "product_name_ko": "샘플 쌀과자",
+        "product_name_en": null,
+        "food_type_raw": "과자",
+        "food_type_std": "과자",
+        "origin_country": "베트남",
+        "export_country": "베트남",
+        "maker": "가상 제과 W",
+        "hs_code": null,
+        "violation": "산가 기준 초과 (가상 값)",
+        "action": "반송 또는 폐기",
+        "office": "가상 지방청",
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "manual:sample-unfit-3",
+          "customer_id": "C002",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "origin_food_type",
+          "confidence": "medium",
+          "reason": "원산지 '베트남' + 식품유형 '과자' 일치 (B사 키워드)"
+        }
+      ]
+    },
+    {
+      "raw": {
+        "id": "manual:sample-inspection-1",
+        "run_id": 1,
+        "source": "manual",
+        "title": "[가상] 통관단계 검사지시",
+        "body": "[가상] 태국산 소스류 통관단계 정밀검사 지시",
+        "posted_at": "2026-11-20",
+        "url": "https://example.com/sample/inspection/1",
+        "collected_at": "2026-11-23T09:00:00+09:00"
+      },
+      "selection": {
+        "item_id": "manual:sample-inspection-1",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "inspection_order",
+        "final_category": null,
+        "ai_reason": "통관단계 검사지시 공지",
+        "evidence_quote": "통관단계 정밀검사 지시",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "manual:sample-inspection-1",
+        "product_name_ko": null,
+        "product_name_en": null,
+        "food_type_raw": "소스류",
+        "food_type_std": "소스",
+        "origin_country": "태국",
+        "export_country": null,
+        "maker": null,
+        "hs_code": null,
+        "violation": null,
+        "action": "통관단계 정밀검사",
+        "office": "가상 지방청",
+        "period_start": "2026-11-20",
+        "period_end": "2027-02-19",
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "manual:sample-inspection-1",
+          "customer_id": "C002",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "origin_food_type",
+          "confidence": "high",
+          "reason": "원산지 '태국' + 식품유형 '소스' 일치 (B사 키워드)"
+        }
+      ]
+    }
+  ],
+  "law_changes": [
+    {
+      "id": "law:sample-1",
+      "law_name": "[가상] 수입식품등 검사 관련 고시",
+      "kind": "행정규칙",
+      "change_type": "일부개정",
+      "number": "가상 제2026-00호",
+      "promulgated_at": "2026-11-10",
+      "effective_at": "2026-11-17",
+      "articles": "[가상] 제0조(검사 방법)",
+      "ai_summary": "[가상] 정밀검사 대상 품목을 넓히는 내용",
+      "final_summary": null,
+      "source_url": "https://example.com/sample/law/1",
+      "crosscheck": "not_checked",
+      "crosscheck_note": "",
+      "related_food_types": ["소스", "과자"]
+    }
+  ]
+}
