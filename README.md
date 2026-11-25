@@ -136,7 +136,7 @@ cd frontend && npx tsc --noEmit && npm run build
 2. `copy .env.example .env` 후 필요한 값만 채운다.
    - `SUPABASE_URL`은 이미 적혀 있다. `SUPABASE_ANON_KEY`에는 KHS에게 1:1로 받은 **publishable 키**(`sb_publishable_…`)를 넣는다.
    - `SUPABASE_SERVICE_ROLE_KEY`는 비워 둔다(KHS만, secret 키). 팀원 키로는 Supabase 읽기만 된다.
-   - 키 위치(KHS용): Supabase 대시보드 → `weekly-report` → Project Settings → API Keys. 자세히는 [AGENTS.md 5-2-1](AGENTS.md).
+   - 키 위치(KHS용): Supabase 대시보드 → `weekly-report-ax` → Project Settings → API Keys. 자세히는 [AGENTS.md 5-2-1](AGENTS.md).
 3. [AGENTS.md 4-2](AGENTS.md#4-2-기능-id--폴더-빠른-찾기)에서 내 기능 ID의 폴더를 확인한다. 그 폴더와 짝 파일만 고친다.
 4. AI 도구에 일을 시킬 때는 [AGENTS.md 13장](AGENTS.md#13장-작업-요청-프롬프트-복사해서-사용) 프롬프트를 복사해 쓴다.
 5. 커밋·PR은 사람이 직접 한다. AI 도구에게 커밋·push·PR을 시키지 않는다.
