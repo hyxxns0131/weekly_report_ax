@@ -1,5 +1,8 @@
 # 공통 의존성 (KHS). == 로 고정, 알파벳 순. 설치: pip install -r requirements/base.txt -r requirements/b1.txt -r requirements/b2.txt
 fastapi==0.165.0
+google-api-python-client==2.202.0
+google-auth-httplib2==0.4.4
+google-auth-oauthlib==1.5.0
 httpx==0.28.1
 pydantic==2.14.4
 pytest==9.2.0
