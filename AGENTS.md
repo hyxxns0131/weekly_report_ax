@@ -619,6 +619,7 @@ prefix: `/api/core`(KHS), `/api/b1`(LSH), `/api/b2`(KHW). 라우터 등록은 `m
 | GET/PUT | /api/b1/settings/sources | 출처 설정 | B1-15 |
 | GET | /api/b1/settings/customers | 고객사 키워드(가명 ID로) | B1-15 |
 | POST | /api/b2/runs/{run_id}/report | 보고서 조립 | B2-01 |
+| PUT | /api/b2/runs/{run_id}/report/reannounce | 새 개정이 없는 주에 섹션 2에 넣을 법령 재안내 글 저장 | B2-01 |
 | POST | /api/b2/runs/{run_id}/drafts | 메일 초안 생성 | B2-02,03 |
 | GET | /api/b2/runs/{run_id}/drafts | 초안 목록 | B2-04 |
 | PATCH | /api/b2/drafts/{draft_id} | 본문 수정 | B2-04 |

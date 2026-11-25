@@ -472,7 +472,7 @@
 - 섹션 번호·이름·순서는 매주 같다. 내용이 없으면 "해당 없음" 문장을 넣고 섹션을 지우지 않는다.
 - 섹션 3이 없는 주에 섹션을 뺄지 "해당 없음"으로 둘지는 확인 필요.
 - 출처는 항목마다 붙인다. 숫자·날짜는 원문 값만.
-- 템플릿 파일(KHW): `backend/templates/staff_summary.md.j2`(담당자용), `customer_mail.md.j2`(고객사용), 섹션은 `templates/parts/section1.md.j2`·`section2.md.j2`·`section3.md.j2`로 나눈다. 섹션 이름·"해당 없음" 문구는 `config/b2/report.json`. 문구는 템플릿·설정에서만 고친다.
+- 양식 문구(KHW): 지금은 `backend/config/b2/report.json`의 문구(섹션 이름·"해당 없음" 등)를 쓴다. `backend/templates/*.j2`(`staff_summary.md.j2`, `customer_mail.md.j2`, `parts/section1~3.md.j2`)는 빈 파일로 남아 있고 Jinja2는 아직 쓰지 않는다. 문구는 설정 파일에서만 고친다.
 - 과거 보고서 예시(첨부 ⑤)를 받으면 이 양식을 그 형식으로 바꾸고, 바꾼 곳을 이 문서에 기록한다.
 
 ## 11. 공통 화면 규칙
