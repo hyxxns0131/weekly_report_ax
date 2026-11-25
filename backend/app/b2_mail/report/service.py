@@ -60,7 +60,7 @@ def build(run_id: int, token: str | None, source: str = "api") -> tuple[ReportOu
                 reannounce=reannounce,
                 period=(ws.period_start, ws.period_end),
             ),
-            f"{t[2]}\n{section3_tip.render(tip, cfg['empty_section3'])}",
+            f"{t[2]}\n{section3_tip.render(tip, cfg['empty_section3'], staff=True)}",
         ]
     )
     repo.save_report(
