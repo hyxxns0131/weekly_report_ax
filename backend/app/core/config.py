@@ -42,6 +42,8 @@ class Settings(BaseModel):
     ai_provider: str = "claude"
     claude_model: str = DEFAULT_CLAUDE_MODEL
     openai_model: str = DEFAULT_OPENAI_MODEL
+    openai_api_key: str = ""  # 화면·로그·응답에 내보내지 않는다
+    anthropic_api_key: str = ""
 
     supabase_url: str = ""
     supabase_anon_key: str = ""
@@ -93,6 +95,8 @@ def get_settings() -> Settings:
         ai_provider=env.get("AI_PROVIDER", "claude") or "claude",
         claude_model=env.get("CLAUDE_MODEL") or DEFAULT_CLAUDE_MODEL,
         openai_model=env.get("OPENAI_MODEL") or DEFAULT_OPENAI_MODEL,
+        openai_api_key=(env.get("OPENAI_API_KEY") or "").strip(),
+        anthropic_api_key=(env.get("ANTHROPIC_API_KEY") or "").strip(),
         supabase_url=env.get("SUPABASE_URL", ""),
         supabase_anon_key=env.get("SUPABASE_ANON_KEY", ""),
         supabase_service_role_key=env.get("SUPABASE_SERVICE_ROLE_KEY", ""),

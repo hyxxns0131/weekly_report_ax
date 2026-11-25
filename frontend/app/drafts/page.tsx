@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { ErrorState } from "../../components/ui/ErrorState";
+import { AiStatusBar } from "../../components/ui/AiStatusBar";
 import { RunGate } from "../../components/ui/RunGate";
 import { color } from "../../components/ui/tokens";
 import { getDrafts, makeDrafts } from "../../lib/api/b2/drafts";
@@ -101,5 +102,7 @@ function Body({ run }: { run: Run }) {
 }
 
 export default function DraftsPage() {
-  return <RunGate title={TEXT.title}>{(run) => <Body run={run} />}</RunGate>;
+  return <RunGate title={TEXT.title} aside={<AiStatusBar usage="메일 초안 문장과 오늘의 팁 작성에 씁니다" />}>
+      {(run) => <Body run={run} />}
+    </RunGate>;
 }
