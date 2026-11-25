@@ -1,0 +1,11 @@
+{
+  "customer_id": "C003",
+  "display_name": "C사",
+  "note": "가상 고객사. 실제 고객사 설정은 구글 드라이브에만 둔다. 한 항목에 고객사 여러 곳이 걸리는 경우를 보여 주려고 만든 데모용.",
+  "keywords": [
+    { "origin_country": "중국", "food_type": "냉동새우" },
+    { "origin_country": "태국", "food_type": "소스" }
+  ],
+  "makers": ["OCEAN FOODS"],
+  "hs_codes": []
+}

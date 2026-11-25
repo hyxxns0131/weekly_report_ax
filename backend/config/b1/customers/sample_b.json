@@ -4,7 +4,10 @@
   "note": "가상 고객사. 실제 고객사 설정은 구글 드라이브에만 둔다.",
   "keywords": [
     { "origin_country": "베트남", "food_type": "과자" },
-    { "origin_country": "태국", "food_type": "소스" }
+    { "origin_country": "태국", "food_type": "소스" },
+    { "origin_country": "중국", "food_type": "고춧가루" },
+    { "origin_country": "베트남", "food_type": "냉동새우" },
+    { "origin_country": null, "food_type": "건강기능식품" }
   ],
   "makers": ["가상 식품 Y"],
   "hs_codes": []
