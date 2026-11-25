@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { ErrorState } from "../../components/ui/ErrorState";
 import { Loading } from "../../components/ui/Loading";
+import { AiStatusBar } from "../../components/ui/AiStatusBar";
 import { RunGate } from "../../components/ui/RunGate";
 import { color } from "../../components/ui/tokens";
 import { analyze } from "../../lib/api/b1/classify";
@@ -109,5 +110,7 @@ function CollectBody({ run }: { run: Run }) {
 }
 
 export default function CollectPage() {
-  return <RunGate title={TEXT.title}>{(run) => <CollectBody run={run} />}</RunGate>;
+  return <RunGate title={TEXT.title} aside={<AiStatusBar usage="선별(관련·무관·검토 필요)과 본문형 자료 정보 추출에 씁니다" />}>
+      {(run) => <CollectBody run={run} />}
+    </RunGate>;
 }

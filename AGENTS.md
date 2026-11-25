@@ -592,6 +592,9 @@ prefix: `/api/core`(KHS), `/api/b1`(LSH), `/api/b2`(KHW). 라우터 등록은 `m
 | POST | /api/core/auth/login | 로그인 `{username, password}` → 세션 토큰 (로그인 없이 호출 가능) | C-08 |
 | POST | /api/core/auth/logout | 로그아웃 | C-08 |
 | GET | /api/core/auth/me | 로그인한 사용자 확인 | C-08 |
+| GET | /api/core/ai/status | AI 연결 상태(꺼짐·키 없음·연결 확인 전·연결됨·연결 실패), 지금 AI 회사·모델, 모델 목록. 키 값은 돌려주지 않는다 | C-02 |
+| PUT | /api/core/ai/settings | AI 회사·모델 선택 `{provider, model}` 저장 | C-02 |
+| POST | /api/core/ai/test | 연결 검사(모델 목록 조회만, 토큰 비용 없음) | C-02 |
 | POST | /api/core/runs | 주간 실행 만들기 `{reference_date}` → 보고 기간 계산 | C-06 |
 | GET | /api/core/runs/{run_id}/status | 단계별 진행 현황 | C-06 |
 | POST | /api/b1/runs/{run_id}/upload | 수동 업로드 (source 지정) | B1-01 |
@@ -630,6 +633,9 @@ prefix: `/api/core`(KHS), `/api/b1`(LSH), `/api/b2`(KHW). 라우터 등록은 `m
 6. **숫자·날짜:** LLM 출력의 숫자·날짜·고시번호가 원문에 없으면 경고(`warnings`)를 단다.
 7. **끄기:** `LLM_ENABLED=false`면 LLM을 부르지 않고 규칙 결과만 쓴다.
 8. **기록:** 호출마다 모델, 프롬프트 버전, 토큰 수, 소요 시간을 로컬 로그에 남긴다(비용 확인용).
+9. **화면에 AI 상태 표시:** AI를 쓰는 탭(수집·선별, 고객사 판단, 법령 개정, 보고서·메일, 설정)은 제목 아래에 `components/ui/AiStatusBar.tsx`를 둔다. 상태 배지 + AI 회사·모델 선택 + [연결 검사] 버튼. 선택은 한 곳에 저장되어 모든 탭에 같이 적용된다.
+10. **AI 회사·모델 선택:** 우선순위는 화면에서 고른 값(`data/ai_settings.json`, 커밋 안 함) > `.env`의 `AI_PROVIDER`·`OPENAI_MODEL`·`CLAUDE_MODEL` > `backend/config/ai_models.json` 첫 항목. 모델 목록은 `ai_models.json` 기본 목록에 연결 검사 때 받아 온 실제 목록을 더한다. 목록에 없는 모델은 "직접 입력"으로 넣는다.
+11. **키:** `OPENAI_API_KEY`·`ANTHROPIC_API_KEY`는 `.env`에만 둔다. 화면·API 응답·로그에 키 값을 내보내지 않는다("키 있음/없음"만).
 
 ---
 

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { ErrorState } from "../../components/ui/ErrorState";
 import { Loading } from "../../components/ui/Loading";
+import { AiStatusBar } from "../../components/ui/AiStatusBar";
 import { RunGate } from "../../components/ui/RunGate";
 import { color } from "../../components/ui/tokens";
 import { getCustomers } from "../../lib/api/b1/settings";
@@ -88,5 +89,7 @@ function Body({ run }: { run: Run }) {
 }
 
 export default function CustomersPage() {
-  return <RunGate title={TEXT.title}>{(run) => <Body run={run} />}</RunGate>;
+  return <RunGate title={TEXT.title} aside={<AiStatusBar usage="고객사 판단 보조(규칙 판단이 먼저, AI는 보조)에 씁니다" />}>
+      {(run) => <Body run={run} />}
+    </RunGate>;
 }

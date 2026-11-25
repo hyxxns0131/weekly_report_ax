@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ErrorState } from "../../components/ui/ErrorState";
 import { Loading } from "../../components/ui/Loading";
+import { AiStatusBar } from "../../components/ui/AiStatusBar";
 import { RunGate } from "../../components/ui/RunGate";
 import { color } from "../../components/ui/tokens";
 import { fetchLaw, getLaw } from "../../lib/api/b1/law";
@@ -76,5 +77,7 @@ function Body({ run }: { run: Run }) {
 }
 
 export default function LawPage() {
-  return <RunGate title={TEXT.title}>{(run) => <Body run={run} />}</RunGate>;
+  return <RunGate title={TEXT.title} aside={<AiStatusBar usage="법령 개정 요지 요약에 씁니다" />}>
+      {(run) => <Body run={run} />}
+    </RunGate>;
 }

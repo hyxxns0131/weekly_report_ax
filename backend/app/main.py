@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 from app.b1_select.router import router as b1_router
 from app.b2_mail.router import router as b2_router
+from app.core.ai.router import router as ai_router
 from app.core.auth.deps import require_login
 from app.core.auth.router import router as auth_router
 from app.core.config import get_settings
@@ -59,6 +60,7 @@ def health() -> Health:
 
 core_router.include_router(auth_router)  # login만 열림, logout·me는 각자 require_login
 core_router.include_router(runs_router, dependencies=[Depends(require_login)])
+core_router.include_router(ai_router, dependencies=[Depends(require_login)])
 
 app.include_router(core_router, prefix="/api/core")
 app.include_router(b1_router, prefix="/api/b1", dependencies=[Depends(require_login)])
