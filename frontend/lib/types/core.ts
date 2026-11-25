@@ -171,18 +171,82 @@ export interface Run {
   created_at: string;
 }
 
+// 현황·단계 바 (C-06). backend/app/core/runs/service.py와 같은 모양.
+export type StepGroup = "b1" | "b2";
+export type StepState = "waiting" | "current" | "done";
+// StatusBadge 글자 (○ 대기 ● 진행·확인 중 ✔ 완료 ✖ 실패, DESIGN.md 3-1)
 export type StageState = "waiting" | "in_progress" | "done" | "failed";
 
-export interface StageStatus {
+export interface StepStatus {
   key: string;
+  group: StepGroup;
   name: string;
-  status: StageState;
+  state: StepState;
+  done: boolean;
+  note: string;
+}
+
+export interface RunCounts {
+  raw_items: number;
+  collect_failed: number;
+  selected: number;
+  review_needed: number;
+  relevant: number;
+  extracted: number;
+  empty_fields: number;
+  matches: number;
+  laws: number;
+  law_mismatch: number;
+  report_done: boolean;
+  drafts: number;
+  draft_warnings: number;
+  approval_waiting: number;
+  approved: number;
+  sent: number;
+  evaluated: boolean;
+}
+
+export interface Todo {
+  key: string;
+  text: string;
   count: number;
+  href: string;
+  group: StepGroup;
 }
 
 export interface RunStatus {
   run: Run;
-  stages: StageStatus[];
+  counts: RunCounts;
+  steps: StepStatus[];
+  current: Record<StepGroup, string | null>;
+  materials_ready: boolean;
+  todos: Todo[];
+}
+
+// 알림 — 이번 주 바뀐 점 (C-06, DESIGN.md 3-2). backend/app/core/runs/notices.py와 같은 모양.
+export type NoticeKind = "law_change" | "inspection_order";
+export type NoticeAction = "read" | "dismiss";
+
+export interface Notice {
+  id: string;
+  kind: NoticeKind;
+  title: string;
+  summary: string | null;
+  summary_is_ai: boolean;
+  crosscheck: Crosscheck | null;
+  effective_at: string | null;
+  food_types: string[];
+  customers: string[];
+  source: string | null;
+  url: string | null;
+  read_by: string | null;
+  read_at: string | null;
+}
+
+export interface NoticeList {
+  items: Notice[];
+  unread: number;
+  total: number;
 }
 
 // AI 연결 상태 (C-02). backend/app/core/llm.py와 같은 모양. 키 값은 오지 않는다.
@@ -210,4 +274,27 @@ export interface AiStatus {
   models: string[];
   providers: AiProvider[];
   last_test: AiTest | null;
+}
+
+// 연결 설정 (C-01). 키·토큰 값은 오지 않는다.
+export type ConnId = "ai" | "supabase_read" | "supabase_write" | "google_drive" | "gmail" | "law_api";
+export type ConnState = "off" | "no_key" | "ready" | "ok" | "error";
+
+export interface ConnTest {
+  ok: boolean;
+  message: string;
+  checked_at: string;
+  elapsed_ms: number;
+}
+
+export interface ConnStatus {
+  id: ConnId;
+  name: string;
+  usage: string;
+  env_names: string[];
+  configured: boolean;
+  state: ConnState;
+  state_label: string;
+  hint: string;
+  last_test: ConnTest | null;
 }
