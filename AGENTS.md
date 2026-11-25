@@ -427,7 +427,9 @@ weekly_report/
 |---|---|---|---|
 | 구글 드라이브 (실무 기준) | 고객사 목록·"원산지-식품유형" 키워드, 확정된 주간 보고서, 발송한 메일 | 담당자, 프로그램(읽기·보관) | 공개 저장소로 복사 |
 | 로컬 SQLite (`data/weekly.db`) | 작업 중 수집·선별·추출·매칭 결과, 초안, 캐시 | 프로그램 | 커밋 |
-| Supabase | 공개 정보만: 법령 개정 소식, 부적합·검사지시 공개 원문, 고시·뉴스레터 원문 | 프로그램(적재는 PM) | **고객사명, 고객사 매칭 결과, 메일 본문** |
+| Supabase | 공개 정보만: 법령 개정 소식, 부적합·검사지시 공개 원문, 고시·뉴스레터 원문 | 프로그램(적재는 PM) | **고객사명, 고객사 매칭 결과, 메일 본문** (예외: 아래 비공개 표) |
+
+**예외 — 비공개 표 (PM 결정, 2026-11-25):** 과거 주간 보고서 원문과 관련 화주(검증 B2-06 정답)는 Supabase의 `past_report`, `past_report_match`에만 둔다. RLS를 켜고 정책을 두지 않아 publishable 키로는 읽을 수 없고, secret 키(PM)로만 읽고 쓴다. 화주는 보고서에 적힌 가명 표기만 둔다. 정의: `supabase/migrations/202611250100_private_past_report.sql`. 이 표는 규칙 위반이 아니니 지우지 않는다.
 
 ### 5-2. DB 관리 권한 (PM만)
 - 로컬 테이블 정의 `backend/app/core/storage/schema.sql`, Supabase `supabase/migrations/`는 **KHS만** 만들고 고친다.
@@ -438,13 +440,13 @@ weekly_report/
 
 | 항목 | 값·위치 |
 |---|---|
-| 프로젝트 | `weekly-report`, 서울(ap-northeast-2), 무료. declaration_list와 **따로** 쓴다 |
-| URL | `https://xsqcgollltlhodjgwldq.supabase.co` (비밀값 아님) |
-| 키 확인 위치 | Supabase 대시보드 → `weekly-report` → **Project Settings → API Keys** |
+| 프로젝트 | `weekly-report-ax`, 서울(ap-northeast-2), 무료. declaration_list와 **따로** 쓴다 |
+| URL | `https://gzvlpbpyyjwbbsfnjvun.supabase.co` (비밀값 아님) |
+| 키 확인 위치 | Supabase 대시보드 → `weekly-report-ax` → **Project Settings → API Keys** |
 | 쓰기 (KHS만) | secret 키(`sb_secret_…`, 예전 이름 service_role) → `.env`의 `SUPABASE_SERVICE_ROLE_KEY`. RLS를 우회하므로 KHS PC 밖으로 내보내지 않는다 |
 | 읽기 (팀원) | publishable 키(`sb_publishable_…`, 예전 이름 anon) → `.env`의 `SUPABASE_ANON_KEY` |
 | 권한 | 모든 테이블 RLS 켬. 정책은 `SELECT`만(anon·authenticated). INSERT·UPDATE·DELETE 정책 없음 → publishable 키로는 쓰기 불가 |
-| 테이블 정의 | `supabase/migrations/202611250000_public_info_tables.sql` (5-3의 4개) |
+| 테이블 정의 | `supabase/migrations/202611250000_public_info_tables.sql` (5-3의 4개, 공개 읽기) · `202611250100_private_past_report.sql` (비공개 2개, secret 키만) |
 | 올리지 않는 것 | 고객사 서류 원본·고객사 목록·매칭 결과·메일 본문. 고객사 원본은 기업 보안 조건 확인 후 **HS가 따로 승인하기 전까지** 어떤 클라우드에도 올리지 않는다 |
 | 변수 이름 | declaration_list와 같게 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
 

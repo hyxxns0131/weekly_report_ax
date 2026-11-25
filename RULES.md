@@ -295,7 +295,7 @@ git push origin <내 이니셜>
 | KHS (PM) | secret 키 `sb_secret_…` | `SUPABASE_SERVICE_ROLE_KEY` | 테이블 만들기·적재·수정·삭제 |
 | LSH·KHW | publishable 키 `sb_publishable_…` | `SUPABASE_ANON_KEY` | 읽기(SELECT)만 |
 
-- 키 확인: Supabase 대시보드 → 프로젝트 `weekly-report` → **Project Settings → API Keys**. 팀원은 대시보드에 들어가지 않고 KHS에게 publishable 키를 1:1로 받는다.
+- 키 확인: Supabase 대시보드 → 프로젝트 `weekly-report-ax` → **Project Settings → API Keys**. 팀원은 대시보드에 들어가지 않고 KHS에게 publishable 키를 1:1로 받는다.
 - 모든 테이블은 RLS를 켜고 `SELECT` 정책만 둔다. INSERT·UPDATE·DELETE 정책은 만들지 않는다(쓰기는 secret 키로만).
 - 키 값은 채팅방·이슈·PR·커밋·로그에 쓰지 않는다. 샜으면 KHS에게 바로 알리고, KHS가 새 키를 만들고 옛 키를 지운다.
 - 고객사 서류 원본은 기업 보안 조건을 확인하고 **HS가 따로 승인하기 전까지** Supabase(테이블·Storage 모두)에 올리지 않는다.
@@ -314,6 +314,7 @@ git push origin <내 이니셜>
 - 고객사 판단 결과(`CustomerMatch`)
 - 메일 본문·수신자 주소
 - 담당자 이름·이메일
+- 예외: 과거 보고서 정답용 비공개 표 `past_report`, `past_report_match`(RLS 켜고 정책 없음, secret 키만). PM 결정. AGENTS.md 5-1 참고
 
 ### 8-3. 고객사명 가리기
 - LLM 호출 전 `core/masking.py`로 실명 → 가명 ID(C001…). 결과를 받은 뒤 되돌린다.
