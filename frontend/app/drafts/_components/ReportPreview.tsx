@@ -1,7 +1,8 @@
 "use client";
 // B2-01 보고서 미리보기 (KHW).
-// - 발송할 본문과 "담당자 확인용 · 발송 전 삭제" 칸을 나눠 보여 준다 (확인용 칸은 보고서 맨 끝 한 곳).
-// - [본문 복사]는 확인용 칸을 뺀 본문만 복사한다.
+// - 발송할 본문(report.text)과 b1에서 정리할 것(report.check)을 나눠 보여 준다.
+//   check는 화면 전용이라 메일 초안에 들어가지 않는다. 확인·확정은 b1 화면에서 한다.
+// - [본문 복사]는 본문(report.text)만 복사한다.
 // - 섹션 2 재안내 글을 저장하면 보고서를 다시 조립해 이 상자에 보여 준다 (page.tsx는 그대로).
 import { useState } from "react";
 import { AiBadge, Badge } from "../../../components/ui/Badge";
@@ -11,14 +12,14 @@ import type { ReportOut } from "../../../lib/types/b2";
 
 const TEXT = {
   title: "주간 보고서",
-  // 백엔드 config/b2/report.json의 check_title과 같아야 본문·확인용을 나눌 수 있다.
-  checkMarker: "(담당자 확인용 · 발송 전 삭제)",
   bodyLabel: "발송할 본문",
-  checkLabel: "⚠ 담당자 확인용 · 발송 전 삭제",
-  checkHelp: "이 칸은 메일에 넣지 않습니다. 확인한 뒤 본문을 고치거나 단계로 돌아가 바로잡아 주세요.",
-  noCheck: "확인할 항목이 없습니다.",
+  checkLabel: "⚠ b1에서 정리할 것 · 메일에 들어가지 않음",
+  checkHelp:
+    "이 목록은 메일 초안에 들어가지 않아요. 수집·선별, 고객사 판단 화면에서 정리한 뒤 [보고서 조립]을 다시 눌러 주세요.",
+  checkWarn: "⚠ b1에서 정리할 것이 있어요. 아래 주황 상자를 확인해 주세요.",
+  noCheck: "정리할 것이 없습니다.",
   copy: "본문 복사",
-  copied: "본문을 복사했어요 (확인용 칸 제외).",
+  copied: "본문을 복사했어요.",
   copyFailed: "복사하지 못했어요. 본문을 직접 선택해 복사해 주세요.",
   counts: (s1: number, s2: number, review: number) =>
     `부적합·검사지시 ${s1}건 · 법령 개정 ${s2}건 · 검토 필요 ${review}건`,
@@ -31,15 +32,6 @@ const TEXT = {
   saved: "저장하고 보고서를 다시 조립했어요.",
   failed: "저장하지 못했어요",
 };
-
-function split(text: string): { body: string; check: string } {
-  const at = text.indexOf(TEXT.checkMarker);
-  if (at < 0) return { body: text.trimEnd(), check: "" };
-  return {
-    body: text.slice(0, at).trimEnd(),
-    check: text.slice(at + TEXT.checkMarker.length).replace(/^\n/, ""),
-  };
-}
 
 function mmdd(iso: string): string {
   return `${iso.slice(5, 7)}/${iso.slice(8, 10)}`;
@@ -56,7 +48,8 @@ export function ReportPreview({ report }: { report: ReportOut }) {
   const [busy, setBusy] = useState(false);
 
   const r = shown.report;
-  const { body, check } = split(shown.text);
+  const body = shown.text;
+  const check = shown.check ?? "";
 
   async function copyBody() {
     try {
@@ -105,6 +98,7 @@ export function ReportPreview({ report }: { report: ReportOut }) {
       <p style={{ margin: "6px 0 12px", color: color.muted, fontSize: 14 }}>
         {TEXT.counts(r.section1_items.length, r.section2_items.length, shown.review_needed)}
       </p>
+      {check && <p style={{ margin: "0 0 12px", color: color.warning, fontWeight: 700, fontSize: 14 }}>{TEXT.checkWarn}</p>}
       {note && <p role="status" style={{ margin: "0 0 12px", fontSize: 14 }}>{note}</p>}
 
       <div aria-label={TEXT.bodyLabel} style={{ background: color.surface, borderRadius: 14, padding: 16 }}>

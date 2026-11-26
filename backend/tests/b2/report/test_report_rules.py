@@ -26,7 +26,6 @@ from app.core.schema import (
     WeeklySelection,
 )
 
-CHECK = "(담당자 확인용 · 발송 전 삭제)"
 Build = Callable[[WeeklySelection], service.ReportOut]
 
 
@@ -63,8 +62,8 @@ def test_whole_empty_week_keeps_three_sections(build: Build) -> None:
     """1. 항목·법령·팁이 모두 없는 주: 섹션 1·2·3 틀은 그대로, 내용은 모두 "해당 없음"."""
     ws = _sample()
     ws.items, ws.law_changes = [], []
-    text = build(ws).text
-    body = text.split(CHECK)[0]
+    out = build(ws)
+    body = out.text
     assert body.startswith("1. 수입식품 부적합·통관단계 검사지시 (부적합일자 : 11/16~11/22)\n")
     assert "■ 우리 고객사 관련 부적합 (0건)\n     이번 주 해당 없음." in body
     assert "■ 통관단계 검사지시 안내 (0건)\n     이번 주 해당 없음." in body
@@ -73,7 +72,7 @@ def test_whole_empty_week_keeps_three_sections(build: Build) -> None:
         in body
     )
     assert "3. 주간 검역 정보 안내\n   이번 주 해당 없음." in body
-    tail = text.split(CHECK)[1]
+    tail = out.check  # 화면 전용 확인 목록
     assert "재안내 글을 입력해 주세요" in tail and "이번 주 팁이 없어요" in tail
 
 
@@ -81,9 +80,9 @@ def test_item_marked_irrelevant_by_staff_disappears(build: Build) -> None:
     """2. AI는 '관련', 담당자는 '무관' → 본문에도 확인용 칸에도 없다."""
     ws = _sample()
     _item(ws, "unfit-1").selection.final_label = Label.irrelevant
-    text = build(ws).text
-    assert "샘플 위스키" not in text
-    assert "■ 우리 고객사 관련 부적합 (1건)" in text
+    out = build(ws)
+    assert "샘플 위스키" not in out.text and "샘플 위스키" not in out.check
+    assert "■ 우리 고객사 관련 부적합 (1건)" in out.text
 
 
 def test_category_changed_by_staff_moves_group(build: Build) -> None:
@@ -135,7 +134,7 @@ def test_item_without_extracted_info_shows_check_needed(build: Build) -> None:
             ),
         )
     )
-    tail = build(ws).text.split(CHECK)[1]  # 고객사와 맞지 않아 확인용 칸으로 간다
+    tail = build(ws).check  # 고객사와 맞지 않아 확인 목록으로 간다
     assert "■ 고객사와 맞지 않은 부적합 (1건)" in tail
     assert "[확인 필요] [가상] 추출 전 부적합 공지 / 관련 화주: 없음" in tail
     assert "출처: 확인 필요" in tail
