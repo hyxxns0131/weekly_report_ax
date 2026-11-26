@@ -32,7 +32,7 @@ const TEXT = {
 
 const MENU: { href: string; label: string; owner: string; group: StepGroup | "home" }[] = [
   { href: "/", label: "이번 주 현황", owner: "KHS", group: "home" },
-  { href: "/collect/", label: "재료 준비", owner: "LSH", group: "b1" },
+  { href: "/collect/", label: "자료 선별·고객사 매칭", owner: "LSH", group: "b1" },
   { href: "/drafts/", label: "보고서·메일", owner: "KHW", group: "b2" },
 ];
 
@@ -78,7 +78,7 @@ function ruleText(run: Run): string {
   return dow === 0 || dow >= 5 ? TEXT.ruleThis : TEXT.ruleLast;
 }
 
-/** 사이드바 배지: 재료 준비 "검토 n", 보고서·메일 "승인 대기 n". 0이면 숨긴다 */
+/** 사이드바 배지: 자료 선별·고객사 매칭 "검토 n", 보고서·메일 "승인 대기 n". 0이면 숨긴다 */
 function useBadges(): Record<StepGroup, string | null> {
   const { state } = useRunStatus();
   if (state.kind !== "ok") return { b1: null, b2: null };

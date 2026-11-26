@@ -15,7 +15,7 @@ import { collect, getItems, getSourceStatus } from "../../lib/api/b1/collect";
 import { fetchLaw, getLaw } from "../../lib/api/b1/law";
 import { getMatches } from "../../lib/api/b1/match";
 import { getCustomers, getSources } from "../../lib/api/b1/settings";
-import { getDrafts, makeDrafts } from "../../lib/api/b2/drafts";
+import { getDrafts } from "../../lib/api/b2/drafts";
 import { createRun, getLatestRun } from "../../lib/api/core";
 import type { CustomerSetting, ItemRow, OneClickData, SourceStatus as SourceRow } from "../../lib/types/b1";
 import type { MailDraft, Run } from "../../lib/types/core";
@@ -46,7 +46,6 @@ const TEXT = {
   notRun: "아직 실행 전",
   failedSources: "수집 실패 출처",
   noCustomers: "설정된 고객사가 없습니다. 설정 화면에서 고객사 키워드를 확인해 주세요.",
-  noDraftForCustomer: "메일에 넣을 부적합·검사지시 항목이 없어 초안을 만들지 않았습니다.",
   allResults: "전체 결과 목록 보기 (관련 고객사 없는 항목·무관 항목 포함)",
   details: "담당자용 자세히 보기",
   lawSource: "법제처",
@@ -270,21 +269,6 @@ export default function CollectPage() {
     }
   }
 
-  async function onMake(customerId: string) {
-    if (!run) return;
-    setDrafts((d) => ({ ...d, [customerId]: { kind: "busy" } }));
-    let next: DraftState;
-    try {
-      // B2-03에는 고객사 하나만 만드는 API가 없어, 전체를 만든 뒤 이 고객사 초안만 꺼낸다.
-      const all = await makeDrafts(run.id);
-      const found = all.find((x) => x.kind === "customer" && x.customer_id === customerId);
-      next = found ? { kind: "ok", draft: found } : { kind: "error", message: TEXT.noDraftForCustomer };
-    } catch (e) {
-      next = { kind: "error", message: errorText(e) };
-    }
-    setDrafts((d) => ({ ...d, [customerId]: next }));
-  }
-
   const ready = view.kind === "ok";
   const lines = view.kind === "ok" ? buildLines(view.data).lines : [];
 
@@ -319,7 +303,6 @@ export default function CollectPage() {
             lines={lines.filter((l) => l.customers.some((x) => x.id === c.customer_id))}
             ready={ready}
             draft={drafts[c.customer_id] ?? { kind: "none" }}
-            onMake={() => void onMake(c.customer_id)}
           />
         ))}
       </div>

@@ -105,10 +105,84 @@ def _product(item: SelectedItem) -> str:
 
 
 def _customers(item: SelectedItem, names: dict[str, str]) -> str:
+    """관련 화주: 고객사 이름만 (실제 메일 형식). 판단 근거는 b1 고객사 판단 화면에서 본다.
+
+    같은 제조사로 걸린 고객사에는 강조 표시를 붙인다.
+    """
     found = [m for m in item.matches if _confirmed(m)]
     if not found:
         return "없음"
-    return " / ".join(f"{names.get(m.customer_id, m.customer_id)} ({m.reason})" for m in found)
+    mark = _text()["same_maker_mark"]
+    return ", ".join(
+        names.get(m.customer_id, m.customer_id) + (f" {mark}" if m.rule == MatchRule.maker else "")
+        for m in found
+    )
+
+
+def _cell(x: object) -> str:
+    """표 칸 하나: 줄바꿈·'|'를 지워 표가 깨지지 않게 한다. 빈 칸은 "확인 필요"."""
+    return " ".join(_v(x).replace("|", "/").split())
+
+
+def _unfit_table(
+    items: list[SelectedItem], names: dict[str, str], show_customers: bool
+) -> list[str]:
+    """부적합 표 (실제 메일: 제조국가 | 제조/수출회사 | 식품유형/품목명 | 위반 내역 | 관련 화주).
+
+    RULES.md 12장에 따라 부적합일자·출처 칸을 함께 둔다. 고객사 메일에는 관련 화주 칸이 없다.
+    """
+    t = _text()
+    head: list[str] = list(t["table_columns"])
+    if not show_customers:
+        head.remove(t["table_customer_column"])
+    rows = [f"   | {' | '.join(head)} |", f"   |{'---|' * len(head)}"]
+    for i in items:
+        e = i.extracted
+        cells = [
+            _cell(i.raw.posted_at),
+            _cell(e.origin_country if e else None),
+            _cell(e.maker if e else None),
+            _cell(_product(i)),
+            _cell(e.violation if e else None),
+        ]
+        if show_customers:
+            cells.append(_cell(_customers(i, names)))
+        cells.append(_cell(i.raw.url))
+        rows.append(f"   | {' | '.join(cells)} |")
+    return rows
+
+
+def _inspection_block(item: SelectedItem, names: dict[str, str], show_customers: bool) -> list[str]:
+    """통관단계 검사지시 한 건 (실제 메일 형식: # 제목 / 가. 나. 다.).
+
+    담당자용: 가. 검사기간 / 나. 관련화주 / 다. 대상 품목 및 검사항목.
+    고객사 메일: 관련화주 줄이 없으므로 가. 검사기간 / 나. 대상 품목 및 검사항목.
+    """
+    t = _text()["inspection_labels"]
+    e = item.extracted
+    start = _v(e.period_start if e else None)
+    end = _v(e.period_end if e else None)
+    lines = [f"   # {item.raw.title or MISSING}", f"     {t['period']} : {start} ~ {end}"]
+    if show_customers:
+        lines.append(f"     {t['customers']} : {_customers(item, names)}")
+    target = " / ".join(
+        [
+            _v(e.origin_country if e else None),
+            _v((e.food_type_std or e.food_type_raw) if e else None),
+            _v(e.violation if e else None),
+        ]
+    )
+    label = t["targets"] if show_customers else t["targets_customer_mail"]
+    lines.append(f"     {label} : {target}")
+    lines.append(f"     출처: {_v(item.raw.url)}")
+    return lines
+
+
+def _count_group(title: str, count: int, lines: list[str], empty: str | None) -> list[str]:
+    """■ 제목 (N건) + 줄들. N은 항목 수(표 머리줄·여러 줄 묶음과 상관없이)."""
+    if not count and empty is None:
+        return []
+    return [f"  ■ {title} ({count}건)", *(lines if count else [f"     {empty}"])]
 
 
 def line(item: SelectedItem, names: dict[str, str], show_customers: bool) -> str:
@@ -180,12 +254,15 @@ def render(
     t = _text()
     unfit, insp, other = _split(items)
 
+    def blocks(group: list[SelectedItem], show: bool) -> list[str]:
+        return [ln for i in group for ln in _inspection_block(i, names, show)]
+
     if not show_customers:
         if not items:
             return f"  {empty}"
         out: list[str] = []
-        out += _group(t["group_unfit"], [line(i, names, False) for i in unfit], None)
-        out += _group(t["group_inspection"], [line(i, names, False) for i in insp], None)
+        out += _count_group(t["group_unfit"], len(unfit), _unfit_table(unfit, names, False), None)
+        out += _count_group(t["group_inspection"], len(insp), blocks(insp, False), None)
         out += _group(t["group_other"], [line(i, names, False) for i in other], None)
         return "\n".join(out)
 
@@ -194,9 +271,11 @@ def render(
     # 매주 같은 틀: 본문 묶음은 비어도 남기고 "해당 없음"을 넣는다
     out = [f"  {s}" for s in t["intro"]]
     out.append(f"  {t['source_unfit']}")
-    out += _group(t["group_related"], [line(i, names, True) for i in related_unfit], empty)
+    out += _count_group(
+        t["group_related"], len(related_unfit), _unfit_table(related_unfit, names, True), empty
+    )
     out.append(f"  {t['source_inspection']}")
-    out += _group(t["group_inspection"], [line(i, names, True) for i in related_insp], empty)
+    out += _count_group(t["group_inspection"], len(related_insp), blocks(related_insp, True), empty)
     return "\n".join(out)
 
 
