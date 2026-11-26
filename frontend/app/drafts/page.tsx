@@ -25,6 +25,8 @@ const TEXT = {
   report: "보고서 조립",
   drafts: "메일 초안 만들기",
   empty: "아직 초안이 없습니다. [보고서 조립] → [메일 초안 만들기]를 눌러 주세요.",
+  unsaved: "글상자에 저장하지 않은 수정이 있습니다. 넘어가면 그 수정은 사라집니다. 계속할까요?",
+  saveFirst: "저장하지 않은 수정이 있습니다. 먼저 [저장]해야 승인·발송할 수 있습니다.",
 };
 
 function Body({ run }: { run: Run }) {
@@ -34,6 +36,8 @@ function Body({ run }: { run: Run }) {
   const [sendEnabled, setSendEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // B2-04: 글상자에 저장하지 않은 수정이 있는지 (DraftEditor가 알려 준다).
+  const [dirty, setDirty] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -49,6 +53,37 @@ function Body({ run }: { run: Run }) {
     void load();
     getSendInfo().then((i) => setSendEnabled(i.mail_send_enabled)).catch(() => setSendEnabled(false));
   }, [load]);
+
+  // 저장 안 한 수정이 있을 때 창을 닫거나(새로 고침 포함) 다른 메뉴로 가려 하면 먼저 묻는다.
+  useEffect(() => {
+    if (!dirty) return;
+    const onUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    const onLinkClick = (e: MouseEvent) => {
+      const link = e.target instanceof Element ? e.target.closest("a[href]") : null;
+      if (link && !window.confirm(TEXT.unsaved)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener("beforeunload", onUnload);
+    document.addEventListener("click", onLinkClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", onUnload);
+      document.removeEventListener("click", onLinkClick, true);
+    };
+  }, [dirty]);
+
+  function confirmLeave(): boolean {
+    return !dirty || window.confirm(TEXT.unsaved);
+  }
+
+  function selectDraft(id: number) {
+    if (id === selected || !confirmLeave()) return;
+    setSelected(id);
+  }
 
   async function act(fn: () => Promise<void>) {
     setBusy(true);
@@ -66,12 +101,16 @@ function Body({ run }: { run: Run }) {
   const counts = { draft: 0, approved: 0, sent: 0 };
   drafts.forEach((d) => { counts[d.status] += 1; });
   const current = drafts.find((d) => d.id === selected) ?? null;
+  const hasCurrent = current !== null;
+  useEffect(() => {
+    if (!hasCurrent) setDirty(false); // 글상자가 없으면 저장 안 한 수정도 없다
+  }, [hasCurrent]);
 
   return (
     <>
       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
         <button type="button" disabled={busy} onClick={() => act(async () => setReport(await buildReport(run.id)))}>{TEXT.report}</button>
-        <button type="button" className="primary" disabled={busy} onClick={() => act(async () => {
+        <button type="button" className="primary" disabled={busy} onClick={() => confirmLeave() && act(async () => {
           setReport(await buildReport(run.id));
           const d = await makeDrafts(run.id);
           setDrafts(d);
@@ -86,13 +125,17 @@ function Body({ run }: { run: Run }) {
         <EmptyState message={TEXT.empty} />
       ) : (
         <div style={{ display: "flex", gap: 16 }}>
-          <DraftList drafts={drafts} names={names} selected={selected} onSelect={setSelected} />
+          <DraftList drafts={drafts} names={names} selected={selected} onSelect={selectDraft} />
           {current && (
             <div style={{ flex: 1 }}>
-              <DraftEditor draft={current} onSaved={load} />
+              <DraftEditor draft={current} onSaved={load} onDirtyChange={setDirty} />
               <WarningList warnings={current.warnings} />
-              <SendPanel draft={current} sendEnabled={sendEnabled} onChanged={load} />
-              <HistoryPanel draftId={current.id} version={current.final_body ?? ""} />
+              {/* 저장 안 한 수정이 있으면 승인·발송을 막는다: 화면 글과 승인되는 글이 달라지지 않게 */}
+              {dirty && <p style={{ color: color.warning }}>{TEXT.saveFirst}</p>}
+              <fieldset disabled={dirty} style={{ border: 0, padding: 0, margin: 0 }}>
+                <SendPanel draft={current} sendEnabled={sendEnabled} onChanged={load} />
+              </fieldset>
+              <HistoryPanel draft={current} dirty={dirty} onRestored={load} />
             </div>
           )}
         </div>
