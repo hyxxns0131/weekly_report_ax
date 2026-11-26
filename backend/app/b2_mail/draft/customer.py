@@ -60,7 +60,9 @@ def body(
     t = rcfg["section_titles"]
     m = cfg["customer_body"]
     items = related_items(out, customer_id)
-    s1 = section1_unfit.render(items, {}, rcfg["empty_section1_customer"], show_customers=False)
+    s1 = section1_unfit.render(
+        items, {}, rcfg["empty_section1_customer"], show_customers=False, customer_id=customer_id
+    )
     s2 = section2_law.render(out.report.section2_items, rcfg["empty_section2"], reannounce)
     s3 = section3_tip.render(out.report.section3_tip, rcfg["empty_section3"])
     head = "\n".join([m["greeting"], m["intro"]])

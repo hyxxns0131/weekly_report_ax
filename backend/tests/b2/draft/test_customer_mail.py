@@ -77,6 +77,33 @@ def test_each_customer_gets_own_mail(
     assert c.index("1. 수입식품") < c.index("2. 주간 법령") < c.index("3. 주간 검역")
 
 
+def test_same_maker_mark_only_for_own_match(
+    client: TestClient, auth_headers: dict[str, str], use_demo: Loader
+) -> None:
+    """C사(같은 제조사 규칙) 행에 '귀사 수입 이력과 같은 제조사' 표시. 남의 판단은 안 보인다."""
+    use_demo(None)
+    drafts = _drafts(client, auth_headers, _run(client, auth_headers))
+    mails = _by_customer(drafts)
+    mark = "【귀사 수입 이력과 같은 제조사】"
+    c_row = next(ln for ln in mails["C003"]["ai_body"].splitlines() if "Ocean Foods" in ln)
+    assert mark in c_row
+    assert mark not in mails["C002"]["ai_body"]  # B사는 같은 제조사 판단이 없다
+    staff = _staff(drafts)["ai_body"]
+    assert mark not in staff  # 담당자 메일은 원래 표시(【같은 제조사】) 그대로
+    assert "【같은 제조사】" in staff
+
+
+def test_same_maker_row_comes_first(
+    client: TestClient, auth_headers: dict[str, str], use_demo: Loader
+) -> None:
+    """A사 표에서 같은 제조사 행이 맨 위(머리줄·구분줄 다음)."""
+    use_demo(None)
+    a = _by_customer(_drafts(client, auth_headers, _run(client, auth_headers)))["C001"]
+    rows = [ln for ln in a["ai_body"].splitlines() if ln.startswith("   | ")]
+    assert len(rows) >= 3  # 머리줄 + 2행 이상
+    assert "【귀사 수입 이력과 같은 제조사】" in rows[1]
+
+
 def test_body_wording_from_config(
     client: TestClient, auth_headers: dict[str, str], use_demo: Loader
 ) -> None:

@@ -4,6 +4,10 @@ import { useState } from "react";
 import { color } from "../../../components/ui/tokens";
 import { approve, send, toGmailDraft } from "../../../lib/api/b2/send";
 import type { MailDraft } from "../../../lib/types/core";
+import { isDropped } from "./DraftList";
+
+const DROPPED_NOTICE =
+  "이번 주 안내 대상에서 빠진 고객사 초안입니다. 승인·발송할 수 없습니다. 고객사 판단 화면에서 다시 [유지]하고 초안을 다시 만들면 풀립니다.";
 
 export function SendPanel({ draft, sendEnabled, onChanged }: { draft: MailDraft; sendEnabled: boolean; onChanged: () => void }) {
   const [ack, setAck] = useState(false);
@@ -17,15 +21,19 @@ export function SendPanel({ draft, sendEnabled, onChanged }: { draft: MailDraft;
       setMsg(e instanceof Error ? e.message : "실패");
     }
   };
+  const dropped = isDropped(draft);
   return (
     <div style={{ marginTop: 8 }}>
-      {draft.warnings.length > 0 && draft.status === "draft" && (
+      {dropped && (
+        <p role="alert" style={{ color: color.danger, fontWeight: 700 }}>{DROPPED_NOTICE}</p>
+      )}
+      {!dropped && draft.warnings.length > 0 && draft.status === "draft" && (
         <label style={{ display: "block", color: color.warning }}>
           <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> 경고를 확인했습니다
         </label>
       )}
-      <button type="button" onClick={() => run(() => toGmailDraft(draft.id), "Gmail 초안함에 저장했습니다.")}>Gmail 초안함에 저장</button>{" "}
-      <button type="button" className="primary" disabled={draft.status !== "draft" || (draft.warnings.length > 0 && !ack)}
+      <button type="button" disabled={dropped} onClick={() => run(() => toGmailDraft(draft.id), "Gmail 초안함에 저장했습니다.")}>Gmail 초안함에 저장</button>{" "}
+      <button type="button" className="primary" disabled={dropped || draft.status !== "draft" || (draft.warnings.length > 0 && !ack)}
         onClick={() => run(() => approve(draft.id, ack), "승인했습니다.")}>승인</button>{" "}
       <button type="button" disabled={draft.status !== "approved" || !sendEnabled}
         onClick={() => run(() => send(draft.id), "발송했습니다.")}>발송</button>
