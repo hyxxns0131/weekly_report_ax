@@ -5,8 +5,9 @@
   "keywords": [
     { "origin_country": "영국", "food_type": "위스키" },
     { "origin_country": "프랑스", "food_type": "과실주" },
-    { "origin_country": null, "food_type": "일반증류주" }
+    { "origin_country": null, "food_type": "일반증류주" },
+    { "origin_country": "중국", "food_type": "냉동새우" }
   ],
-  "makers": ["가상 증류소 X"],
+  "makers": ["가상 증류소 X", "Gasang Distillery X"],
   "hs_codes": ["2208.30"]
 }
