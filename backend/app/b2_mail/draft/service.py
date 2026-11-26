@@ -28,7 +28,7 @@ def generate(run_id: int, token: str | None, source: str = "api") -> list[MailDr
     issues = sum(
         1 for c in ws.law_changes if c.crosscheck in (Crosscheck.api_only, Crosscheck.notice_only)
     )
-    sbody = staff.body(out, issues)
+    sbody = staff.body(out, cfg)
     drafts = [
         repo.upsert_draft(
             MailDraft(
@@ -37,7 +37,7 @@ def generate(run_id: int, token: str | None, source: str = "api") -> list[MailDr
                 kind=MailKind.staff_summary,
                 subject=staff.subject(out, cfg["subject_staff"]),
                 ai_body=sbody,
-                warnings=checks.check(sbody, ws, []),
+                warnings=checks.check(sbody, ws, []) + staff.warnings(out, issues, cfg),
             )
         )
     ]
