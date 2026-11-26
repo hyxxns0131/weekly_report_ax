@@ -53,7 +53,9 @@ class Settings(BaseModel):
     collect_delay_sec: float = 2.0
     mail_send_enabled: bool = False
 
-    google_credentials_file: Path = REPO_ROOT / "credentials.json"
+    google_client_id: str = ""  # OAuth 데스크톱 앱 클라이언트 ID (.env만)
+    google_client_secret: str = ""  # 화면·로그·응답에 내보내지 않는다
+    google_credentials_file: Path = REPO_ROOT / "credentials.json"  # 예전 방식(위 2개가 비었을 때)
     google_token_file: Path = REPO_ROOT / "token.json"
     drive_law_folder_id: str = ""
 
@@ -104,6 +106,8 @@ def get_settings() -> Settings:
         collect_user_agent=env.get("COLLECT_USER_AGENT", "weekly_report-prototype"),
         collect_delay_sec=float(env.get("COLLECT_DELAY_SEC") or 2),
         mail_send_enabled=_bool(env.get("MAIL_SEND_ENABLED"), False),
+        google_client_id=(env.get("GOOGLE_CLIENT_ID") or "").strip(),
+        google_client_secret=(env.get("GOOGLE_CLIENT_SECRET") or "").strip(),
         google_credentials_file=_path(
             env.get("GOOGLE_CREDENTIALS_FILE"), REPO_ROOT / "credentials.json"
         ),
