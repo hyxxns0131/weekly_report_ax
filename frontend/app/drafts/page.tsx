@@ -92,7 +92,7 @@ function Body({ run }: { run: Run }) {
               <DraftEditor draft={current} onSaved={load} />
               <WarningList warnings={current.warnings} />
               <SendPanel draft={current} sendEnabled={sendEnabled} onChanged={load} />
-              <HistoryPanel draftId={current.id} version={current.final_body ?? ""} />
+              <HistoryPanel draft={current} onRestored={load} />
             </div>
           )}
         </div>
