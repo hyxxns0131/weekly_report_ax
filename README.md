@@ -101,7 +101,7 @@ weekly_report/
    ```
    copy .env.example .env
    ```
-3. 구글 클라우드에서 OAuth 데스크톱 앱 `credentials.json`을 받아 맨 위 폴더에 둔다(커밋 금지). 처음 실행 때 브라우저 로그인 → `token.json` 자동 생성.
+3. 구글 클라우드에서 OAuth 데스크톱 앱 클라이언트를 만들고 ID·시크릿을 `.env`의 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`에 넣는다(커밋 금지). 예전 방식(`credentials.json`을 맨 위 폴더에 두기)도 위 2개가 비어 있으면 그대로 된다. 처음 한 번 `cd backend && .venv\Scripts\python -m app.core.gmail_client`로 브라우저 로그인 → `token.json` 자동 생성.
 4. `.env`의 `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `AUTH_SECRET_KEY`를 채운다. 프로그램을 열면 첫 화면이 로그인이고, 이 계정으로 들어간다.
 5. 법제처 OPEN API(`LAW_API_OC`)는 **등록한 공인 IP에서만 동작**한다. 내 PC IP를 등록해야 한다.
 
