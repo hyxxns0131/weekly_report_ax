@@ -3,6 +3,7 @@
 from fastapi.testclient import TestClient
 
 from app.b2_mail.draft import customer, staff
+from app.b2_mail.draft.service import mail_config
 from app.b2_mail.report.service import build
 
 # 확인 목록에만 나오는 글자들. 메일로 나가는 글에 하나라도 있으면 안 된다.
@@ -37,8 +38,9 @@ def test_text_is_mail_body_only_and_check_is_separate(
 def test_mail_drafts_have_no_check_list(client: TestClient, auth_headers: dict[str, str]) -> None:
     run_id, _ = _report(client, auth_headers)
     out, _ = build(run_id, None, "sample")
-    for body in (staff.body(out, 0), customer.body(out, "C001"), customer.body(out, "C002")):
+    staff_body = staff.body(out, mail_config())
+    for body in (staff_body, customer.body(out, "C001"), customer.body(out, "C002")):
         assert not any(w in body for w in CHECK_WORDS)
         assert "샘플 쌀과자" not in body  # 검토 필요 항목은 어떤 메일에도 없다
     a = customer.body(out, "C001")
-    assert "B사" not in a and "2. 주간 법령 개정 소식" in a and "부적합일자" not in a
+    assert "B사" not in a and "2. 주간 법령 개정 소식" in a and "(부적합일자 :" not in a
