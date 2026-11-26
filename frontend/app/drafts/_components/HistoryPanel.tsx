@@ -22,9 +22,13 @@ export function HistoryPanel({ draft, onRestored }: { draft: MailDraft; onRestor
   const version = draft.final_body ?? "";
   useEffect(() => {
     getHistory(draft.id)
-      .then((r) => { setRows(r); setMsg(null); })
+      .then(setRows)
       .catch(() => { setRows([]); setMsg(TEXT.loadFailed); });
   }, [draft.id, version]);
+  // 되돌린 뒤 다시 불러와도 "되돌렸습니다" 안내는 남기고, 다른 초안으로 바꿀 때만 지운다.
+  useEffect(() => {
+    setMsg(null);
+  }, [draft.id]);
 
   if (rows.length === 0) return msg ? <p style={{ color: color.muted }}>{msg}</p> : null;
   const locked = draft.status === "sent";

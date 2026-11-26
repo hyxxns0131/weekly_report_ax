@@ -19,8 +19,11 @@ export function DraftEditor({ draft, onSaved }: { draft: MailDraft; onSaved: () 
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => {
     setBody(draft.final_body ?? draft.ai_body);
-    setMsg(null);
   }, [draft]);
+  // 저장 뒤 다시 불러와도 "저장했습니다" 안내는 남기고, 다른 초안으로 바꿀 때만 지운다.
+  useEffect(() => {
+    setMsg(null);
+  }, [draft.id]);
 
   return (
     <div>
