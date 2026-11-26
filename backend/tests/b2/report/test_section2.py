@@ -1,12 +1,22 @@
 """B2-01 섹션 2 법령 개정: 항목 칸 / final 우선 / 해당 없음·재안내 / 확인 목록 (가상 샘플)."""
 
-from datetime import date
+from datetime import date, datetime
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.b2_mail.input import load_selection
 from app.b2_mail.report import section2_law as s2
-from app.core.schema import Crosscheck, LawChange
+from app.core.schema import (
+    Category,
+    Crosscheck,
+    Label,
+    LawChange,
+    RawItem,
+    SelectedItem,
+    Selection,
+    Source,
+)
 
 EMPTY = "이번 주 새로 시행된 관련 법령 개정 사항은 해당 없습니다."
 
@@ -78,6 +88,56 @@ def test_reannounce_saved_and_used_in_report(
     )
     assert res.status_code == 200, res.text
     rep = client.post(f"/api/b2/runs/{run_id}/report?source=sample", headers=h).json()
-    # 샘플에는 새 개정이 있으므로 재안내 글은 넣지 않고 확인용 칸에 알린다
+    # 샘플에는 새 개정이 있으므로 재안내 글은 넣지 않고 화면 확인 목록(check)에 알린다
     assert "재안내 테스트 글" not in rep["text"]
-    assert "저장된 재안내 글이 있지만" in rep["text"]
+    assert "저장된 재안내 글이 있지만" in rep["check"]
+
+
+def _board_item(item_id: str, title: str, label: Label) -> SelectedItem:
+    return SelectedItem(
+        raw=RawItem(
+            id=item_id,
+            run_id=1,
+            source=Source.impfood_law_policy,
+            title=title,
+            body="",
+            posted_at=date(2026, 11, 19),
+            url=f"https://example.com/{item_id}",
+            collected_at=datetime(2026, 11, 20, 9, 0),
+        ),
+        selection=Selection(item_id=item_id, ai_label=label, ai_category=Category.law_change),
+    )
+
+
+def test_board_law_news_not_in_law_list_is_listed() -> None:
+    """게시판 법령 소식: 법령 목록에 같은 이름이 없으면 확인 목록에, 있으면 빼고, 메일 글엔 없음."""
+    changes, period = _sample()  # 법령 목록: 「[가상] 수입식품등 검사 관련 고시」
+    board = [
+        _board_item("b1", "[가상] 「가상 표시기준」 일부개정 안내", Label.relevant),
+        _board_item("b2", "[가상] 「[가상] 수입식품등 검사 관련 고시」 개정 안내", Label.relevant),
+        _board_item("b3", "[가상] 법령 이름 없는 정책 소식", Label.review_needed),
+    ]
+    check = "\n".join(s2.check_lines(changes, period, None, board, {}))
+    assert "게시판 소식 · 법령 개정 목록에 없음" in check and "(2건)" in check
+    assert "「가상 표시기준」 일부개정 안내 / 선별: 관련 / 관련 고객사 후보: 없음" in check
+    assert "법령 이름 없는 정책 소식 / 선별: 검토 필요" in check
+    assert "b2" not in check  # 같은 법령이 이미 법령 목록에 있다
+    assert "가상 표시기준" not in s2.render(changes, EMPTY)
+
+
+def test_board_law_news_in_report_check_only(
+    client: TestClient, auth_headers: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.b2_mail.report import service
+
+    ws = load_selection(0, None, "sample")
+    ws.items.append(_board_item("b1", "[가상] 「가상 표시기준」 일부개정 안내", Label.relevant))
+    ws.items.append(_board_item("b9", "[가상] 「가상 화장품 기준」 개정", Label.irrelevant))
+    monkeypatch.setattr(service, "load_selection", lambda *_a, **_k: ws)
+    h = auth_headers
+    run_id = client.post("/api/core/runs", json={"reference_date": "2026-11-25"}, headers=h).json()[
+        "id"
+    ]
+    out, _ = service.build(run_id, None, "sample")
+    assert "가상 표시기준" in out.check and "가상 표시기준" not in out.text
+    assert "가상 화장품 기준" not in out.check  # '무관'은 보여 주지 않는다

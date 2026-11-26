@@ -2,7 +2,7 @@
 
 from app.b2_mail.input import load_customer_names, load_selection
 from app.b2_mail.report import section1_unfit as s1
-from app.core.schema import Label, SelectedItem
+from app.core.schema import Confidence, Label, SelectedItem
 
 EMPTY = "이번 주 해당 없음."
 
@@ -46,8 +46,24 @@ def test_blank_fields_show_check_needed() -> None:
     items, names = _sample()
     text = s1.render(s1.pick(items), names, EMPTY)
     insp = next(ln for ln in text.splitlines() if "태국" in ln)
-    assert "[소스] 확인 필요" in insp  # 제품명 없음
+    assert "[소스] [가상] 통관단계 검사지시" in insp  # 제품명이 없으면 원문 제목
     assert "검사 항목: 확인 필요" in insp
+
+
+def test_name_falls_back_to_title_then_check_needed() -> None:
+    """이름 자리: 제품명 → (없으면) 원문 제목 → (둘 다 없으면) "확인 필요"."""
+    items, _ = _sample()
+    item = _item(items, "inspection-1")
+    assert item.extracted is not None
+
+    item.extracted.food_type_std = item.extracted.food_type_raw = None
+    assert s1._product(item) == "[가상] 통관단계 검사지시"  # 식품유형도 없는 안내문: 제목만
+
+    item.raw.title = ""
+    assert s1._product(item) == "확인 필요"
+
+    item.extracted.product_name_ko = "가상 칠리소스"  # 제품명은 있고 식품유형만 없음
+    assert s1._product(item) == "[확인 필요] 가상 칠리소스"
 
 
 def test_final_values_override_ai() -> None:
@@ -56,10 +72,43 @@ def test_final_values_override_ai() -> None:
     whisky.matches[0].final_matched = False  # 담당자가 A사 관련을 지움
     rice = _item(items, "unfit-3")
     rice.selection.final_label = Label.relevant  # 담당자가 검토 필요 → 관련으로 확정
+    rice.matches[0].final_matched = True  # b1 고객사 판단 화면에서 B사 [유지]
     body, check = _both(items, names)
     assert "샘플 쌀과자" in body and "관련 화주: B사" in body
     assert "샘플 위스키" in check and "■ 고객사와 맞지 않은 부적합 (1건)" in check
     assert "■ 검토 필요" not in check
+
+
+def test_unconfirmed_medium_match_stays_out_of_body() -> None:
+    """확인 전 + 신뢰도 중간 판단은 본문에 넣지 않고 확인 목록에서 [유지]/[제외]를 안내한다."""
+    items, names = _sample()
+    rice = _item(items, "unfit-3")  # B사: 원산지+식품유형 일치지만 신뢰도 중간, 담당자 확인 전
+    rice.selection.final_label = Label.relevant
+    body, check = _both(items, names)
+    assert "샘플 쌀과자" not in body
+    assert "■ 고객사 판단 확인 전 · 고객사 판단 화면(/customers)에서 [유지] 또는 [제외]" in check
+    assert "샘플 쌀과자 / 확인 전 후보: B사 (" in check
+    assert (
+        "고객사와 맞지 않은" not in check.split("샘플 쌀과자")[0]
+    )  # 후보가 있으니 '맞지 않음' 아님
+
+    rice.matches[0].final_matched = False  # 담당자 [제외] → 본문에도 후보에도 없다
+    body, check = _both(items, names)
+    assert "샘플 쌀과자" not in body and "확인 전 후보" not in check
+
+
+def test_confirmed_and_pending_on_same_item() -> None:
+    """한 건에 확정 고객사와 확인 전 후보가 같이 있으면: 본문에는 확정만, 후보는 확인 목록에."""
+    items, names = _sample()
+    wine = _item(items, "unfit-2")  # A사: 신뢰도 높음
+    extra = wine.matches[0].model_copy(
+        update={"customer_id": "C002", "confidence": Confidence.medium, "reason": "가상 후보"}
+    )
+    wine.matches.append(extra)
+    body, check = _both(items, names)
+    wine_line = next(ln for ln in body.splitlines() if "샘플 레드와인" in ln)
+    assert "관련 화주: A사" in wine_line and "B사" not in wine_line
+    assert "샘플 레드와인(Sample Red Wine) / 확인 전 후보: B사 (가상 후보)" in check
 
 
 def test_empty_week_keeps_frame() -> None:
