@@ -1,5 +1,5 @@
-// 고객사 카드 하나 (LSH, /collect 보드). 이번 주 그 고객사 관련 항목 + [메일 초안 만들기].
-// 초안은 KHW의 B2-03 API(lib/api/b2/drafts.ts)를 그대로 부른다. 여기서는 보여 주기만 하고 고치기는 /drafts에서.
+// 고객사 카드 하나 (LSH, /collect 보드). 이번 주 그 고객사 관련 항목 + 이미 만들어진 메일 초안 보기.
+// 초안 만들기는 보드에서 하지 않는다. 고치기는 /drafts에서.
 import Link from "next/link";
 import { color, space } from "../../../components/ui/tokens";
 import type { CustomerSetting } from "../../../lib/types/b1";
@@ -12,8 +12,6 @@ const TEXT = {
   tag: "고객사",
   waiting: "위에서 [고객사 선별하기]를 먼저 눌러 주세요.",
   none: "이번 주 관련 항목 없음",
-  make: "✉ 메일 초안 만들기",
-  remake: "✉ 메일 초안 다시 만들기",
   making: "초안 만드는 중…",
   edit: "보고서·메일 화면에서 고치기 →",
   noDraft: "초안 없음",
@@ -34,13 +32,11 @@ export function CustomerCard({
   lines,
   ready,
   draft,
-  onMake,
 }: {
   customer: CustomerSetting;
   lines: Line[];
   ready: boolean;
   draft: DraftState;
-  onMake: () => void;
 }) {
   const id = customer.customer_id;
   const busy = draft.kind === "busy";
@@ -111,14 +107,6 @@ export function CustomerCard({
         </p>
       )}
 
-      <button
-        type="button"
-        onClick={onMake}
-        disabled={!ready || lines.length === 0 || busy}
-        style={{ width: "100%", marginTop: "auto" }}
-      >
-        {busy ? TEXT.making : has ? TEXT.remake : TEXT.make}
-      </button>
     </BoardCard>
   );
 }

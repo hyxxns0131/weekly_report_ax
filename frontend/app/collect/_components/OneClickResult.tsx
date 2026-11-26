@@ -4,6 +4,7 @@ import { color, space } from "../../../components/ui/tokens";
 import type { CustomerSetting, ItemRow, MatchRow, OneClickData } from "../../../lib/types/b1";
 import type { Category, LawChange, MatchRule } from "../../../lib/types/core";
 import { HelpTip } from "./HelpTip";
+import { MATCH_RULE_GUIDE, selectRuleGuide } from "./ruleGuide";
 
 const TEXT = {
   aiNote: "AI 결과 · 담당자 확인 전",
@@ -34,7 +35,7 @@ const TEXT = {
 };
 
 // 한 줄에 걸린 고객사. tip은 그 고객사 근거 한 줄 (? 말풍선용).
-export type LineCustomer = { id: string; name: string; strong: boolean; tip: string };
+export type LineCustomer = { id: string; name: string; strong: boolean; tip: string; guide: string };
 export type Line = {
   key: string;
   tag: string;
@@ -46,7 +47,13 @@ export type Line = {
 
 export function lineTips(l: Line, only?: string): string[] {
   const cs = only ? l.customers.filter((c) => c.id === only) : l.customers;
-  return [l.reason, ...cs.map((c) => c.tip), ...(l.review ? [TEXT.reviewTip] : [])].filter((t) => t.length > 0);
+  return [
+    l.reason,
+    selectRuleGuide(l.reason),
+    ...cs.map((c) => c.tip),
+    ...cs.map((c) => c.guide),
+    ...(l.review ? [TEXT.reviewTip] : []),
+  ].filter((t) => t.length > 0);
 }
 
 function mmdd(iso: string | null): string {
@@ -88,6 +95,7 @@ function itemLines(items: ItemRow[], matches: MatchRow[]): { lines: Line[]; irre
         name: m.customer_name,
         strong: m.rule === "maker",
         tip: `${TEXT.rules[m.rule]} · ${m.reason}`,
+        guide: MATCH_RULE_GUIDE[m.rule] ?? "",
       })),
       reason: sel.ai_reason,
     };
@@ -114,6 +122,7 @@ function lawLines(laws: LawChange[], customers: CustomerSetting[]): Line[] {
         name: h.c.display_name,
         strong: false,
         tip: `${TEXT.rules.food_type_only} · 본문에 '${h.food}' 언급 (${h.c.display_name}) · 검토 필요`,
+        guide: MATCH_RULE_GUIDE.food_type_only,
       })),
       reason: hits.length > 0 ? TEXT.lawReason : `${TEXT.lawReason} · ${TEXT.lawNoFoodType}`,
     };
