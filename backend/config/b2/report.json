@@ -16,6 +16,14 @@
     "source_unfit": "출처: 수입식품정보마루 → 수입식품부적합 목록 https://impfood.mfds.go.kr/CFCEE01F01/getList",
     "source_inspection": "출처: 수입식품정보마루 → 통관단계 검사지시 https://impfood.mfds.go.kr/CFCII02F01",
     "same_maker_mark": "【같은 제조사】",
+    "table_columns": ["부적합일자", "제조국가", "제조/수출회사", "식품유형/품목명", "위반 내역", "관련 화주", "출처"],
+    "table_customer_column": "관련 화주",
+    "inspection_labels": {
+      "period": "가. 검사기간",
+      "customers": "나. 관련화주",
+      "targets": "다. 대상 품목 및 검사항목",
+      "targets_customer_mail": "나. 대상 품목 및 검사항목"
+    },
     "group_related": "우리 고객사 관련 부적합",
     "group_inspection": "통관단계 검사지시 안내",
     "group_unfit": "부적합",

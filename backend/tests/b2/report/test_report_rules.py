@@ -92,7 +92,7 @@ def test_category_changed_by_staff_moves_group(build: Build) -> None:
     s1 = _section1(build(ws).text)
     assert "■ 우리 고객사 관련 부적합 (1건)" in s1
     assert "■ 통관단계 검사지시 안내 (2건)" in s1
-    assert s1.index("■ 통관단계 검사지시 안내") < s1.index("샘플 레드와인")
+    assert s1.index("■ 통관단계 검사지시 안내") < s1.index("# [가상] 과실주 부적합")
 
 
 def test_customer_added_by_staff_goes_to_body_and_mail(build: Build) -> None:
@@ -111,8 +111,8 @@ def test_customer_added_by_staff_goes_to_body_and_mail(build: Build) -> None:
         )
     )
     out = build(ws)
-    assert "관련 화주: A사 (원산지 '프랑스'" in out.text
-    assert "B사 (담당자 추가)" in out.text
+    assert "| A사, B사 |" in out.text  # 관련 화주 칸: 이름만
+    assert "담당자 추가" not in out.text  # 판단 근거 문장은 메일 글에 넣지 않는다
     assert "샘플 레드와인" in customer.body(out, "C002")
 
 
