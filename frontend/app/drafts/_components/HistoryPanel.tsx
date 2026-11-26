@@ -11,12 +11,17 @@ const TEXT = {
   restore: "이 글로 되돌리기",
   current: "지금 본문",
   confirm: "이 본문으로 되돌릴까요? 승인된 초안이면 승인이 풀립니다.",
+  confirmDirty: "글상자에 저장하지 않은 수정이 있습니다. 되돌리면 그 수정은 사라집니다. 이 본문으로 되돌릴까요?",
   restored: "되돌렸습니다.",
   failed: "되돌리지 못했습니다",
   loadFailed: "수정 이력을 불러오지 못했습니다",
 };
 
-export function HistoryPanel({ draft, onRestored }: { draft: MailDraft; onRestored: () => void }) {
+export function HistoryPanel({ draft, dirty, onRestored }: {
+  draft: MailDraft;
+  dirty: boolean;
+  onRestored: () => void;
+}) {
   const [rows, setRows] = useState<DraftHistoryRow[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
   const version = draft.final_body ?? "";
@@ -34,7 +39,7 @@ export function HistoryPanel({ draft, onRestored }: { draft: MailDraft; onRestor
   const locked = draft.status === "sent";
 
   async function restore(body: string) {
-    if (!window.confirm(TEXT.confirm)) return;
+    if (!window.confirm(dirty ? TEXT.confirmDirty : TEXT.confirm)) return;
     try {
       await saveDraft(draft.id, body);
       setMsg(TEXT.restored);
