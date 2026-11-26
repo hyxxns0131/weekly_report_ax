@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from app.b2_mail.draft import history, service
 from app.b2_mail.input import B1Unavailable
 from app.core.auth.deps import current_token, require_login
-from app.core.schema import MailDraft, MailStatus
+from app.core.schema import MailDraft
 from app.core.storage import repo
 
 router = APIRouter()
@@ -35,20 +35,18 @@ def list_drafts(run_id: int) -> list[MailDraft]:
 
 @router.patch("/drafts/{draft_id}", response_model=MailDraft)
 def patch_draft(
-    draft_id: int, body: DraftPatch, user: Annotated[str, Depends(require_login)]
+    draft_id: int,
+    body: DraftPatch,
+    user: Annotated[str, Depends(require_login)],
+    token: Annotated[str | None, Depends(current_token)],
+    source: str = "api",
 ) -> MailDraft:
-    d = repo.get_draft(draft_id)
-    if d is None:
-        raise HTTPException(status_code=404, detail="초안을 찾을 수 없습니다.")
-    if d.status == MailStatus.sent:
-        raise HTTPException(status_code=409, detail="이미 발송한 초안은 고칠 수 없습니다.")
-    if d.status == MailStatus.approved:
-        repo.revoke_approval(draft_id)  # 승인 뒤 고치면 승인 해제 (RULES.md 8-5)
-    repo.update_draft(draft_id, final_body=body.final_body)
-    history.add(draft_id, user, body.final_body)
-    got = repo.get_draft(draft_id)
-    assert got is not None
-    return got
+    try:
+        return service.save_edit(draft_id, body.final_body, user, token, source)
+    except service.DraftNotFound as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except service.DraftLocked as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
 
 
 @router.get("/drafts/{draft_id}/history")
