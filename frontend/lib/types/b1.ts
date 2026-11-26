@@ -1,5 +1,5 @@
 // b1 화면 타입 (LSH). 공통 모양은 core.ts에서 가져온다.
-import type { CustomerMatch, ExtractedInfo, RawItem, Selection, Source } from "./core";
+import type { CustomerMatch, ExtractedInfo, LawChange, RawItem, Selection, Source } from "./core";
 
 export interface CollectResult {
   source: string;
@@ -71,3 +71,12 @@ export interface CustomerSetting {
 }
 
 export type ExtractedPatch = Partial<Omit<ExtractedInfo, "item_id" | "edited_fields">>;
+
+// /collect 데모 뷰: 버튼 하나로 모은 결과 (화면 안에서만 쓴다, 새 API 아님)
+export interface OneClickData {
+  items: ItemRow[];
+  matches: MatchRow[];
+  laws: LawChange[];
+  customers: CustomerSetting[];
+  failed: string[];
+}

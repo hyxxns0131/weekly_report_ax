@@ -1,0 +1,660 @@
+{
+  "_note": "b1 데모 결과 (LSH). /collect [이번 주 자동 수집·분석]을 samples/b1_input/demo/ 저장 응답으로 끝까지 돌린 것. 제품·회사·고시·번호·날짜는 모두 가상이다. 모양은 core/schema.py WeeklySelection. 고객사 가명 ID: C001=A사, C002=B사, C003=C사.",
+  "run_id": 1,
+  "period_start": "2026-11-16",
+  "period_end": "2026-11-22",
+  "week_label": "2026년 11월 3주차",
+  "items": [
+    {
+      "raw": {
+        "id": "gyeongin_newsletter:dc8db20e98a3",
+        "run_id": 1,
+        "source": "gyeongin_newsletter",
+        "title": "[가상] 수입 의약품 허가 절차 변경 안내",
+        "body": "[가상 데모] 의약품 수입 허가 서류가 바뀝니다.",
+        "posted_at": "2026-11-21",
+        "url": "https://example.com/demo/newsletter/2",
+        "collected_at": "2026-11-26T02:24:16.399604+09:00"
+      },
+      "selection": {
+        "item_id": "gyeongin_newsletter:dc8db20e98a3",
+        "ai_label": "irrelevant",
+        "final_label": null,
+        "ai_category": "policy_news",
+        "final_category": null,
+        "ai_reason": "Q2 제외 대상: 의약품",
+        "evidence_quote": "의약품",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": null,
+      "matches": []
+    },
+    {
+      "raw": {
+        "id": "impfood_unfit:ad92e5fe4c5e",
+        "run_id": 1,
+        "source": "impfood_unfit",
+        "title": "[가상] 배합사료 곰팡이독소 기준 초과",
+        "body": "부적합일자: 2026-11-21\n제품명: [가상] 가축용 배합사료\n식품유형/품목명: 배합사료\n제조국가: 미국\n제조/수출회사: Gasang Feed U\n위반 내역: 곰팡이독소 기준 초과 (가상 값)\n처리기관: 가상 지방청\n분류: 가상",
+        "posted_at": "2026-11-21",
+        "url": "https://example.com/demo/unfit/6",
+        "collected_at": "2026-11-26T02:24:16.188754+09:00"
+      },
+      "selection": {
+        "item_id": "impfood_unfit:ad92e5fe4c5e",
+        "ai_label": "review_needed",
+        "final_label": null,
+        "ai_category": "unfit",
+        "final_category": null,
+        "ai_reason": "Q1 목록 출처지만 '사료' 포함",
+        "evidence_quote": "사료",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "impfood_unfit:ad92e5fe4c5e",
+        "product_name_ko": "가축용 배합사료",
+        "product_name_en": null,
+        "food_type_raw": "배합사료",
+        "food_type_std": "배합사료",
+        "origin_country": "미국",
+        "export_country": null,
+        "maker": "Gasang Feed U",
+        "hs_code": null,
+        "violation": "곰팡이독소 기준 초과 (가상 값)",
+        "action": null,
+        "office": "가상 지방청",
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": []
+    },
+    {
+      "raw": {
+        "id": "impfood_law_policy:9cfd7ccde0d0",
+        "run_id": 1,
+        "source": "impfood_law_policy",
+        "title": "[가상] 수입식품 해외제조업소 현지실사 확대",
+        "body": "[가상 데모] 내년부터 위해 우려가 있는 해외제조업소에 대한 현지실사 대상을 넓힐 계획입니다.",
+        "posted_at": "2026-11-20",
+        "url": "https://example.com/demo/law-policy/3",
+        "collected_at": "2026-11-26T02:24:16.305672+09:00"
+      },
+      "selection": {
+        "item_id": "impfood_law_policy:9cfd7ccde0d0",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "policy_news",
+        "final_category": null,
+        "ai_reason": "Q3 수입식품 단어: 수입식품",
+        "evidence_quote": "수입식품",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "impfood_law_policy:9cfd7ccde0d0",
+        "product_name_ko": null,
+        "product_name_en": null,
+        "food_type_raw": null,
+        "food_type_std": null,
+        "origin_country": null,
+        "export_country": null,
+        "maker": null,
+        "hs_code": null,
+        "violation": null,
+        "action": null,
+        "office": null,
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": []
+    },
+    {
+      "raw": {
+        "id": "impfood_unfit:e28488f837e4",
+        "run_id": 1,
+        "source": "impfood_unfit",
+        "title": "[가상] 칠레 냉동연어 동물용의약품 잔류 기준 초과",
+        "body": "부적합일자: 2026-11-20\n제품명: [가상] 냉동 연어 필렛\n식품유형/품목명: [수산물] 냉동연어\n제조국가: 칠레\n제조/수출회사: Gasang Seafood V\n위반 내역: 동물용의약품 잔류 기준 초과 (가상 값)\n처리기관: 가상 지방청\n분류: 가상\n분류: 수산물",
+        "posted_at": "2026-11-20",
+        "url": "https://example.com/demo/unfit/5",
+        "collected_at": "2026-11-26T02:24:16.188736+09:00"
+      },
+      "selection": {
+        "item_id": "impfood_unfit:e28488f837e4",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "unfit",
+        "final_category": null,
+        "ai_reason": "Q1 수입식품 목록 출처",
+        "evidence_quote": "impfood_unfit",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "impfood_unfit:e28488f837e4",
+        "product_name_ko": "냉동 연어 필렛",
+        "product_name_en": null,
+        "food_type_raw": "냉동연어",
+        "food_type_std": "냉동연어",
+        "origin_country": "칠레",
+        "export_country": null,
+        "maker": "Gasang Seafood V",
+        "hs_code": null,
+        "violation": "동물용의약품 잔류 기준 초과 (가상 값)",
+        "action": null,
+        "office": "가상 지방청",
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": []
+    },
+    {
+      "raw": {
+        "id": "mfds_notice:8eb0e935294b",
+        "run_id": 1,
+        "source": "mfds_notice",
+        "title": "[가상] 「화장품 안전기준 등에 관한 규정」 일부개정고시",
+        "body": "[가상 데모] 화장품 원료 사용 기준 개정.",
+        "posted_at": "2026-11-20",
+        "url": "https://example.com/demo/notice/2",
+        "collected_at": "2026-11-26T02:24:16.355780+09:00"
+      },
+      "selection": {
+        "item_id": "mfds_notice:8eb0e935294b",
+        "ai_label": "irrelevant",
+        "final_label": null,
+        "ai_category": "law_change",
+        "final_category": null,
+        "ai_reason": "Q2 제외 대상: 화장품",
+        "evidence_quote": "화장품",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": null,
+      "matches": []
+    },
+    {
+      "raw": {
+        "id": "impfood_law_policy:4e34e1277c3f",
+        "run_id": 1,
+        "source": "impfood_law_policy",
+        "title": "[가상] 「식품등의 표시기준」 일부개정 — 과자 알레르기 표시",
+        "body": "[가상 데모] 수입식품 중 과자의 알레르기 유발물질 표시 방법이 개정되었습니다. 세부 조항은 원문 확인 필요.",
+        "posted_at": "2026-11-19",
+        "url": "https://example.com/demo/law-policy/2",
+        "collected_at": "2026-11-26T02:24:16.305660+09:00"
+      },
+      "selection": {
+        "item_id": "impfood_law_policy:4e34e1277c3f",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "law_change",
+        "final_category": null,
+        "ai_reason": "Q3 수입식품 단어: 수입식품",
+        "evidence_quote": "수입식품",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "impfood_law_policy:4e34e1277c3f",
+        "product_name_ko": null,
+        "product_name_en": null,
+        "food_type_raw": null,
+        "food_type_std": null,
+        "origin_country": null,
+        "export_country": null,
+        "maker": null,
+        "hs_code": null,
+        "violation": null,
+        "action": null,
+        "office": null,
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "impfood_law_policy:4e34e1277c3f",
+          "customer_id": "C002",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "food_type_only",
+          "confidence": "medium",
+          "reason": "본문에 '과자' 언급 (B사) · 검토 필요"
+        }
+      ]
+    },
+    {
+      "raw": {
+        "id": "impfood_unfit:14493e031f0f",
+        "run_id": 1,
+        "source": "impfood_unfit",
+        "title": "[가상] 중국 냉동새우살 대장균 기준 초과",
+        "body": "부적합일자: 2026-11-19\n제품명: [가상] 손질 냉동새우살\n식품유형/품목명: [수산물] 냉동새우살\n제조국가: China\n제조/수출회사: Ocean Foods Co., Ltd.\n위반 내역: 대장균 기준 초과 (가상 값)\n처리기관: 가상 지방청\n분류: 가상\n분류: 수산물",
+        "posted_at": "2026-11-19",
+        "url": "https://example.com/demo/unfit/4",
+        "collected_at": "2026-11-26T02:24:16.188717+09:00"
+      },
+      "selection": {
+        "item_id": "impfood_unfit:14493e031f0f",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "unfit",
+        "final_category": null,
+        "ai_reason": "Q1 수입식품 목록 출처",
+        "evidence_quote": "impfood_unfit",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "impfood_unfit:14493e031f0f",
+        "product_name_ko": "손질 냉동새우살",
+        "product_name_en": null,
+        "food_type_raw": "냉동새우살",
+        "food_type_std": "냉동새우",
+        "origin_country": "중국",
+        "export_country": null,
+        "maker": "Ocean Foods Co., Ltd.",
+        "hs_code": null,
+        "violation": "대장균 기준 초과 (가상 값)",
+        "action": null,
+        "office": "가상 지방청",
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "impfood_unfit:14493e031f0f",
+          "customer_id": "C001",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "origin_food_type",
+          "confidence": "high",
+          "reason": "원산지 '중국' + 식품유형 '냉동새우' 일치 (A사 키워드: 위스키, 과실주, 일반증류주, 냉동새우)"
+        },
+        {
+          "item_id": "impfood_unfit:14493e031f0f",
+          "customer_id": "C002",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "food_type_only",
+          "confidence": "medium",
+          "reason": "식품유형 '냉동새우'만 일치(원산지 다름) (B사) · 검토 필요"
+        },
+        {
+          "item_id": "impfood_unfit:14493e031f0f",
+          "customer_id": "C003",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "maker",
+          "confidence": "high",
+          "reason": "같은 제조사(Ocean Foods Co., Ltd.) 수입 이력 (C사) · 같은 제조사 → 강조, 별도 안내"
+        }
+      ]
+    },
+    {
+      "raw": {
+        "id": "mfds_notice:c123f2a8dc6d",
+        "run_id": 1,
+        "source": "mfds_notice",
+        "title": "[가상] 「식품첨가물의 기준 및 규격」 일부개정고시",
+        "body": "[가상 데모] 식품첨가물 일부 품목의 사용 기준을 바꿉니다. 수입식품에도 같이 적용됩니다. 번호·시행일은 원문 확인 필요.",
+        "posted_at": "2026-11-19",
+        "url": "https://example.com/demo/notice/1",
+        "collected_at": "2026-11-26T02:24:16.355707+09:00"
+      },
+      "selection": {
+        "item_id": "mfds_notice:c123f2a8dc6d",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "law_change",
+        "final_category": null,
+        "ai_reason": "Q3 수입식품 단어: 수입식품",
+        "evidence_quote": "수입식품",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "mfds_notice:c123f2a8dc6d",
+        "product_name_ko": null,
+        "product_name_en": null,
+        "food_type_raw": null,
+        "food_type_std": null,
+        "origin_country": null,
+        "export_country": null,
+        "maker": null,
+        "hs_code": null,
+        "violation": null,
+        "action": null,
+        "office": null,
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": []
+    },
+    {
+      "raw": {
+        "id": "gyeongin_newsletter:7f606724a594",
+        "run_id": 1,
+        "source": "gyeongin_newsletter",
+        "title": "[가상] 수입 자동차 통관 절차 안내",
+        "body": "[가상 데모] 수입 자동차 부품의 통관 서류 준비 방법을 안내합니다.",
+        "posted_at": "2026-11-18",
+        "url": "https://example.com/demo/newsletter/1",
+        "collected_at": "2026-11-26T02:24:16.399533+09:00"
+      },
+      "selection": {
+        "item_id": "gyeongin_newsletter:7f606724a594",
+        "ai_label": "review_needed",
+        "final_label": null,
+        "ai_category": "policy_news",
+        "final_category": null,
+        "ai_reason": "Q4 판단 근거 부족",
+        "evidence_quote": "수입",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "gyeongin_newsletter:7f606724a594",
+        "product_name_ko": null,
+        "product_name_en": null,
+        "food_type_raw": null,
+        "food_type_std": null,
+        "origin_country": null,
+        "export_country": null,
+        "maker": null,
+        "hs_code": null,
+        "violation": null,
+        "action": null,
+        "office": null,
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": []
+    },
+    {
+      "raw": {
+        "id": "impfood_law_policy:8f291c3f4ecc",
+        "run_id": 1,
+        "source": "impfood_law_policy",
+        "title": "[가상] 「수입식품등 검사에 관한 규정」 일부개정 시행 안내",
+        "body": "[가상 데모] 수입식품 검사 대상에 건강기능식품 일부 품목의 서류 검사 기준이 바뀌었습니다. 고시 번호·시행일은 원문 확인 필요.",
+        "posted_at": "2026-11-18",
+        "url": "https://example.com/demo/law-policy/1",
+        "collected_at": "2026-11-26T02:24:16.305612+09:00"
+      },
+      "selection": {
+        "item_id": "impfood_law_policy:8f291c3f4ecc",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "law_change",
+        "final_category": null,
+        "ai_reason": "Q3 수입식품 단어: 수입식품",
+        "evidence_quote": "수입식품",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "impfood_law_policy:8f291c3f4ecc",
+        "product_name_ko": null,
+        "product_name_en": null,
+        "food_type_raw": null,
+        "food_type_std": null,
+        "origin_country": null,
+        "export_country": null,
+        "maker": null,
+        "hs_code": null,
+        "violation": null,
+        "action": null,
+        "office": null,
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "impfood_law_policy:8f291c3f4ecc",
+          "customer_id": "C002",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "food_type_only",
+          "confidence": "medium",
+          "reason": "본문에 '건강기능식품' 언급 (B사) · 검토 필요"
+        }
+      ]
+    },
+    {
+      "raw": {
+        "id": "impfood_unfit:b18b2351d055",
+        "run_id": 1,
+        "source": "impfood_unfit",
+        "title": "[가상] 베트남 쌀과자 산가 기준 초과",
+        "body": "부적합일자: 2026-11-18\n제품명: [가상] 바삭 쌀과자\n식품유형/품목명: [가공식품] 쌀과자\n제조국가: Vietnam\n제조/수출회사: Gasang Bakery W\n위반 내역: 산가 기준 초과 (가상 값)\n처리기관: 가상 지방청\n분류: 가상\n분류: 가공식품",
+        "posted_at": "2026-11-18",
+        "url": "https://example.com/demo/unfit/2",
+        "collected_at": "2026-11-26T02:24:16.188668+09:00"
+      },
+      "selection": {
+        "item_id": "impfood_unfit:b18b2351d055",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "unfit",
+        "final_category": null,
+        "ai_reason": "Q1 수입식품 목록 출처",
+        "evidence_quote": "impfood_unfit",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "impfood_unfit:b18b2351d055",
+        "product_name_ko": "바삭 쌀과자",
+        "product_name_en": null,
+        "food_type_raw": "쌀과자",
+        "food_type_std": "과자",
+        "origin_country": "베트남",
+        "export_country": null,
+        "maker": "Gasang Bakery W",
+        "hs_code": null,
+        "violation": "산가 기준 초과 (가상 값)",
+        "action": null,
+        "office": "가상 지방청",
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "impfood_unfit:b18b2351d055",
+          "customer_id": "C002",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "origin_food_type",
+          "confidence": "high",
+          "reason": "원산지 '베트남' + 식품유형 '과자' 일치 (B사 키워드: 과자, 소스, 고춧가루, 냉동새우, 건강기능식품)"
+        }
+      ]
+    },
+    {
+      "raw": {
+        "id": "impfood_unfit:b4b5393df403",
+        "run_id": 1,
+        "source": "impfood_unfit",
+        "title": "[가상] 프랑스 레드와인 보존료 기준 초과",
+        "body": "부적합일자: 2026-11-18\n제품명: [가상] 샘플 레드와인\n식품유형/품목명: [주류] 레드와인\n제조국가: France\n제조/수출회사: Gasang Winery Z\n위반 내역: 보존료(소브산) 기준 초과 (가상 값)\n처리기관: 가상 지방청\n분류: 가상\n분류: 주류",
+        "posted_at": "2026-11-18",
+        "url": "https://example.com/demo/unfit/3",
+        "collected_at": "2026-11-26T02:24:16.188694+09:00"
+      },
+      "selection": {
+        "item_id": "impfood_unfit:b4b5393df403",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "unfit",
+        "final_category": null,
+        "ai_reason": "Q1 수입식품 목록 출처",
+        "evidence_quote": "impfood_unfit",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "impfood_unfit:b4b5393df403",
+        "product_name_ko": "샘플 레드와인",
+        "product_name_en": null,
+        "food_type_raw": "레드와인",
+        "food_type_std": "과실주",
+        "origin_country": "프랑스",
+        "export_country": null,
+        "maker": "Gasang Winery Z",
+        "hs_code": null,
+        "violation": "보존료(소브산) 기준 초과 (가상 값)",
+        "action": null,
+        "office": "가상 지방청",
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "impfood_unfit:b4b5393df403",
+          "customer_id": "C001",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "origin_food_type",
+          "confidence": "high",
+          "reason": "원산지 '프랑스' + 식품유형 '과실주' 일치 (A사 키워드: 위스키, 과실주, 일반증류주, 냉동새우)"
+        }
+      ]
+    },
+    {
+      "raw": {
+        "id": "impfood_inspection:4425d72eb3b3",
+        "run_id": 1,
+        "source": "impfood_inspection",
+        "title": "[가상] 김장철 김장재료 통관검사 강화",
+        "body": "제조국가: 중국\n식품유형/품목명: 고춧가루\n검사항목: 잔류농약, 이물 (가상 값)\n기간시작: 2026-11-17\n기간종료: 2026-12-31\n[가상 데모] 김장철을 맞아 수입 고춧가루·건고추·마늘 등 김장재료의 통관단계 검사를 강화합니다.",
+        "posted_at": "2026-11-17",
+        "url": "https://example.com/demo/inspection/1",
+        "collected_at": "2026-11-26T02:24:16.279270+09:00"
+      },
+      "selection": {
+        "item_id": "impfood_inspection:4425d72eb3b3",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "inspection_order",
+        "final_category": null,
+        "ai_reason": "Q1 수입식품 목록 출처",
+        "evidence_quote": "impfood_inspection",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "impfood_inspection:4425d72eb3b3",
+        "product_name_ko": null,
+        "product_name_en": null,
+        "food_type_raw": "고춧가루",
+        "food_type_std": "고춧가루",
+        "origin_country": "중국",
+        "export_country": null,
+        "maker": null,
+        "hs_code": null,
+        "violation": "잔류농약, 이물 (가상 값)",
+        "action": null,
+        "office": null,
+        "period_start": "2026-11-17",
+        "period_end": "2026-12-31",
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "impfood_inspection:4425d72eb3b3",
+          "customer_id": "C002",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "origin_food_type",
+          "confidence": "high",
+          "reason": "원산지 '중국' + 식품유형 '고춧가루' 일치 (B사 키워드: 과자, 소스, 고춧가루, 냉동새우, 건강기능식품)"
+        }
+      ]
+    },
+    {
+      "raw": {
+        "id": "impfood_unfit:602ea3b2de8d",
+        "run_id": 1,
+        "source": "impfood_unfit",
+        "title": "[가상] 스카치위스키 12년 메탄올 기준 초과",
+        "body": "부적합일자: 2026-11-17\n제품명: [가상] 스카치위스키 12년\n식품유형/품목명: [주류] 스카치위스키\n제조국가: Scotland\n제조/수출회사: Gasang Distillery X Ltd.\n위반 내역: 메탄올 기준 초과 (가상 값)\n처리기관: 가상 지방청\n분류: 가상\n분류: 주류",
+        "posted_at": "2026-11-17",
+        "url": "https://example.com/demo/unfit/1",
+        "collected_at": "2026-11-26T02:24:16.188605+09:00"
+      },
+      "selection": {
+        "item_id": "impfood_unfit:602ea3b2de8d",
+        "ai_label": "relevant",
+        "final_label": null,
+        "ai_category": "unfit",
+        "final_category": null,
+        "ai_reason": "Q1 수입식품 목록 출처",
+        "evidence_quote": "impfood_unfit",
+        "reviewed_by": null,
+        "reviewed_at": null
+      },
+      "extracted": {
+        "item_id": "impfood_unfit:602ea3b2de8d",
+        "product_name_ko": "스카치위스키 12년",
+        "product_name_en": null,
+        "food_type_raw": "스카치위스키",
+        "food_type_std": "위스키",
+        "origin_country": "영국",
+        "export_country": null,
+        "maker": "Gasang Distillery X Ltd.",
+        "hs_code": null,
+        "violation": "메탄올 기준 초과 (가상 값)",
+        "action": null,
+        "office": "가상 지방청",
+        "period_start": null,
+        "period_end": null,
+        "edited_fields": []
+      },
+      "matches": [
+        {
+          "item_id": "impfood_unfit:602ea3b2de8d",
+          "customer_id": "C001",
+          "ai_matched": true,
+          "final_matched": null,
+          "rule": "maker",
+          "confidence": "high",
+          "reason": "같은 제조사(Gasang Distillery X Ltd.) 수입 이력 (A사) · 같은 제조사 → 강조, 별도 안내"
+        }
+      ]
+    }
+  ],
+  "law_changes": [
+    {
+      "id": "law:DEMO0001",
+      "law_name": "식품의 기준 및 규격",
+      "kind": "행정규칙",
+      "change_type": "일부개정",
+      "number": "제2026-000호(가상)",
+      "promulgated_at": "2026-11-13",
+      "effective_at": "2026-11-20",
+      "articles": "[가상] 제2. 식품일반에 대한 공통기준 및 규격 중 미생물 기준 일부 개정",
+      "ai_summary": "[가상 데모] 수입 냉동새우와 과자의 미생물 기준을 국제 기준에 맞춰 정비함. 실제 고시 내용이 아님.",
+      "final_summary": null,
+      "source_url": "https://example.com/demo/law/DEMO0001",
+      "crosscheck": "not_checked",
+      "crosscheck_note": "공문 수집 전",
+      "related_food_types": [
+        "냉동새우",
+        "과자"
+      ]
+    }
+  ]
+}

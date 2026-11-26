@@ -1,4 +1,12 @@
 {
-  "_note": "국가명 정규화 (B1-10, 목업).",
-  "aliases": {"UK": "영국", "United Kingdom": "영국", "France": "프랑스", "Vietnam": "베트남", "Thailand": "태국"}
+  "_note": "국가명 정규화 (B1-10 최소판, 데모용).",
+  "aliases": {
+    "UK": "영국", "U.K.": "영국", "United Kingdom": "영국", "Scotland": "영국", "스코틀랜드": "영국",
+    "France": "프랑스",
+    "Vietnam": "베트남", "Viet Nam": "베트남",
+    "Thailand": "태국",
+    "China": "중국", "중국산": "중국",
+    "Chile": "칠레",
+    "USA": "미국", "U.S.A.": "미국", "United States": "미국"
+  }
 }

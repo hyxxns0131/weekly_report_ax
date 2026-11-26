@@ -1,15 +1,33 @@
 """B1-01~07 수집 처리 순서. 한 출처가 실패해도 다른 출처는 계속한다."""
 
 import json
+from collections.abc import Callable
 from datetime import date
 from typing import Any
 
 from app.b1_select.collect.base import CollectResult
-from app.b1_select.collect.sources import supabase_public
+from app.b1_select.collect.sources import (
+    gyeongin_newsletter,
+    impfood_inspection,
+    impfood_law_policy,
+    impfood_unfit,
+    mfds_notice,
+    supabase_public,
+)
 from app.core.config import REPO_ROOT
 from app.core.storage import local_db, repo
 
 SOURCES_JSON = REPO_ROOT / "backend" / "config" / "b1" / "sources.json"
+
+Collector = Callable[[int, date, date, dict[str, Any]], CollectResult]
+# 출처 id → 수집기. 출처를 늘릴 때는 sources/에 파일을 추가하고 여기에 한 줄 더한다.
+COLLECTORS: dict[str, Collector] = {
+    impfood_unfit.SOURCE_ID: impfood_unfit.collect,
+    impfood_inspection.SOURCE_ID: impfood_inspection.collect,
+    impfood_law_policy.SOURCE_ID: impfood_law_policy.collect,
+    mfds_notice.SOURCE_ID: mfds_notice.collect,
+    gyeongin_newsletter.SOURCE_ID: gyeongin_newsletter.collect,
+}
 
 
 def source_config() -> list[dict[str, Any]]:
@@ -35,25 +53,32 @@ def collect(run_id: int, selected: list[str] | None) -> list[CollectResult]:
     if not selected or supabase_public.NAME in selected:
         results.append(save(run_id, supabase_public.collect(run_id, start, end)))
 
-    # 2) 사이트별 수집기: 아직 만들지 않은 출처는 "수동 업로드"로 표시 (P1, LSH)
+    # 2) 사이트별 수집기: sources.json의 mode(demo | auto | manual)를 따른다.
     for s in source_config():
-        if selected and s["id"] not in selected:
+        sid = s["id"]
+        if selected and sid not in selected:
             continue
-        if s["id"] == "law_api":
-            continue  # 법령은 법령 개정 탭(B1-12)에서 가져온다
+        if sid == "law_api":
+            continue  # 법령은 법령 개정 단계(B1-12)에서 가져온다
         if not s.get("enabled"):
             results.append(
-                save(run_id, CollectResult(source=s["id"], status="off", message="사용 안 함"))
+                save(run_id, CollectResult(source=sid, status="off", message="사용 안 함"))
             )
             continue
-        results.append(
-            save(
-                run_id,
-                CollectResult(
-                    source=s["id"],
-                    status="manual",
-                    message="자동 수집기 준비 전 → 수동 업로드",
-                ),
+        collector = COLLECTORS.get(sid)
+        if s.get("mode", "manual") == "manual" or collector is None:
+            results.append(
+                save(
+                    run_id,
+                    CollectResult(
+                        source=sid, status="manual", message="자동 수집기 준비 전 → 수동 업로드"
+                    ),
+                )
             )
-        )
+            continue
+        try:
+            result = collector(run_id, start, end, s)
+        except Exception as e:  # noqa: BLE001 - 한 출처 실패가 전체를 멈추지 않게
+            result = CollectResult(source=sid, status="failed", message=f"수집 실패: {e}")
+        results.append(save(run_id, result))
     return results
