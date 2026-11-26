@@ -5,6 +5,8 @@ import re
 from app.core.schema import WeeklySelection
 
 NUM = re.compile(r"\d+(?:[.,]\d+)?")
+# 링크 안 숫자는 주소 일부라 검출값·날짜·고시번호가 아니다 (7-6 검사 대상 아님).
+URL = re.compile(r"https?://\S+")
 
 
 def corpus(ws: WeeklySelection) -> str:
@@ -27,7 +29,7 @@ def check(body: str, ws: WeeklySelection, other_customer_names: list[str]) -> li
         if name and name in body:
             warnings.append(f"다른 고객사명 포함: {name}")
     src = corpus(ws)
-    unknown = sorted({n for n in NUM.findall(body) if len(n) >= 2 and n not in src})
+    unknown = sorted({n for n in NUM.findall(URL.sub(" ", body)) if len(n) >= 2 and n not in src})
     if unknown:
         warnings.append("원문에 없는 숫자: " + ", ".join(unknown[:5]))
     return warnings

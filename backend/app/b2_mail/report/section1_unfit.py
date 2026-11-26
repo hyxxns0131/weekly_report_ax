@@ -68,9 +68,17 @@ def pick_review(items: list[SelectedItem]) -> list[SelectedItem]:
     ]
 
 
-def same_maker(item: SelectedItem) -> bool:
-    """고객사 수입 이력과 제조사가 같은 건 (RULES.md 11-2 순서 1). 강조해서 맨 위에 둔다."""
-    return any(_confirmed(m) and m.rule == MatchRule.maker for m in item.matches)
+def same_maker(item: SelectedItem, customer_id: str | None = None) -> bool:
+    """고객사 수입 이력과 제조사가 같은 건 (RULES.md 11-2 순서 1). 강조해서 맨 위에 둔다.
+
+    customer_id를 주면 그 고객사의 판단만 본다 (고객사 메일용).
+    """
+    return any(
+        _confirmed(m)
+        and m.rule == MatchRule.maker
+        and (customer_id is None or m.customer_id == customer_id)
+        for m in item.matches
+    )
 
 
 def _v(x: object) -> str:
@@ -124,12 +132,23 @@ def _cell(x: object) -> str:
     return " ".join(_v(x).replace("|", "/").split())
 
 
+def _own_mark(item: SelectedItem, customer_id: str | None) -> str:
+    """고객사 메일: 그 고객사와 같은 제조사로 걸린 건이면 " 【귀사 수입 이력과 같은 제조사】"."""
+    if customer_id and same_maker(item, customer_id):
+        return " " + _text()["same_maker_mark_customer"]
+    return ""
+
+
 def _unfit_table(
-    items: list[SelectedItem], names: dict[str, str], show_customers: bool
+    items: list[SelectedItem],
+    names: dict[str, str],
+    show_customers: bool,
+    customer_id: str | None = None,
 ) -> list[str]:
     """부적합 표 (실제 메일: 제조국가 | 제조/수출회사 | 식품유형/품목명 | 위반 내역 | 관련 화주).
 
-    RULES.md 12장에 따라 부적합일자·출처 칸을 함께 둔다. 고객사 메일에는 관련 화주 칸이 없다.
+    RULES.md 12장에 따라 부적합일자·출처 칸을 함께 둔다. 고객사 메일에는 관련 화주 칸이 없고,
+    그 고객사와 같은 제조사 건은 제조/수출회사 칸에 표시를 붙인다.
     """
     t = _text()
     head: list[str] = list(t["table_columns"])
@@ -141,7 +160,7 @@ def _unfit_table(
         cells = [
             _cell(i.raw.posted_at),
             _cell(e.origin_country if e else None),
-            _cell(e.maker if e else None),
+            _cell(e.maker if e else None) + _own_mark(i, customer_id),
             _cell(_product(i)),
             _cell(e.violation if e else None),
         ]
@@ -185,11 +204,20 @@ def _count_group(title: str, count: int, lines: list[str], empty: str | None) ->
     return [f"  ■ {title} ({count}건)", *(lines if count else [f"     {empty}"])]
 
 
-def line(item: SelectedItem, names: dict[str, str], show_customers: bool) -> str:
+def line(
+    item: SelectedItem,
+    names: dict[str, str],
+    show_customers: bool,
+    customer_id: str | None = None,
+) -> str:
     """항목 한 줄. 부적합: 제조국가 / 제조·수출회사 / [식품유형] 품목명 / 위반 내역."""
     t = _text()
     e = item.extracted
-    mark = t["same_maker_mark"] + " " if show_customers and same_maker(item) else ""
+    if show_customers:
+        mark = t["same_maker_mark"] + " " if same_maker(item) else ""
+    else:
+        own = _own_mark(item, customer_id)
+        mark = own.lstrip() + " " if own else ""
     head = f"   - {mark}[{_v(item.raw.posted_at)}] "
     cat = category_of(item)
     if e and cat in UNFIT:
@@ -233,8 +261,8 @@ def _group(title: str, lines: list[str], empty: str | None) -> list[str]:
     return [f"  ■ {title} ({len(lines)}건)", *(lines or [f"     {empty}"])]
 
 
-def _sorted(items: list[SelectedItem]) -> list[SelectedItem]:
-    return sorted(items, key=lambda i: not same_maker(i))  # 같은 제조사 건이 먼저
+def _sorted(items: list[SelectedItem], customer_id: str | None = None) -> list[SelectedItem]:
+    return sorted(items, key=lambda i: not same_maker(i, customer_id))  # 같은 제조사 건이 먼저
 
 
 def _split(items: list[SelectedItem]) -> tuple[list[SelectedItem], ...]:
@@ -245,10 +273,15 @@ def _split(items: list[SelectedItem]) -> tuple[list[SelectedItem], ...]:
 
 
 def render(
-    items: list[SelectedItem], names: dict[str, str], empty: str, show_customers: bool = True
+    items: list[SelectedItem],
+    names: dict[str, str],
+    empty: str,
+    show_customers: bool = True,
+    customer_id: str | None = None,
 ) -> str:
     """본문만 만든다. show_customers=True: 담당자용. False: 고객사 메일(그 고객사 항목만).
 
+    고객사 메일에 customer_id를 주면 그 고객사와 같은 제조사 건에 표시를 붙이고 맨 위에 둔다.
     확인 목록은 check_lines()로 따로 받는다(화면 전용, 메일 글에 넣지 않음).
     """
     t = _text()
@@ -261,9 +294,11 @@ def render(
         if not items:
             return f"  {empty}"
         out: list[str] = []
-        out += _count_group(t["group_unfit"], len(unfit), _unfit_table(unfit, names, False), None)
+        table = _unfit_table(_sorted(unfit, customer_id), names, False, customer_id)
+        out += _count_group(t["group_unfit"], len(unfit), table, None)
         out += _count_group(t["group_inspection"], len(insp), blocks(insp, False), None)
-        out += _group(t["group_other"], [line(i, names, False) for i in other], None)
+        others = [line(i, names, False, customer_id) for i in other]
+        out += _group(t["group_other"], others, None)
         return "\n".join(out)
 
     related_unfit = _sorted([i for i in unfit if confirmed_ids(i)])

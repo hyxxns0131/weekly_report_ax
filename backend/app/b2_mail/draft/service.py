@@ -7,7 +7,6 @@ import json
 from typing import Any
 
 from app.b2_mail.draft import checks, customer, staff
-from app.b2_mail.report import section1_unfit
 from app.b2_mail.report.service import build
 from app.core.config import REPO_ROOT
 from app.core.schema import Crosscheck, MailDraft, MailKind
@@ -28,7 +27,12 @@ def generate(run_id: int, token: str | None, source: str = "api") -> list[MailDr
     issues = sum(
         1 for c in ws.law_changes if c.crosscheck in (Crosscheck.api_only, Crosscheck.notice_only)
     )
+    reannounce = (repo.get_report(run_id) or {}).get("reannounce")
     sbody = staff.body(out, cfg)
+    swarn = checks.check(sbody, ws, []) + staff.warnings(out, issues, cfg)
+    skipped = customer.pending_only(out)
+    if skipped:
+        swarn.append(cfg["customer_warnings"]["pending_customers"].format(count=len(skipped)))
     drafts = [
         repo.upsert_draft(
             MailDraft(
@@ -37,15 +41,12 @@ def generate(run_id: int, token: str | None, source: str = "api") -> list[MailDr
                 kind=MailKind.staff_summary,
                 subject=staff.subject(out, cfg["subject_staff"]),
                 ai_body=sbody,
-                warnings=checks.check(sbody, ws, []) + staff.warnings(out, issues, cfg),
+                warnings=swarn,
             )
         )
     ]
-    related = sorted(
-        {cid for i in out.report.section1_items for cid in section1_unfit.matched_ids(i)}
-    )
-    for cid in related:
-        cbody = customer.body(out, cid)
+    for cid in customer.recipients(out):
+        cbody = customer.body(out, cid, cfg, reannounce)
         others = [n for k, n in names.items() if k != cid]
         drafts.append(
             repo.upsert_draft(
@@ -56,8 +57,29 @@ def generate(run_id: int, token: str | None, source: str = "api") -> list[MailDr
                     customer_id=cid,
                     subject=cfg["subject_customer"].format(week_label=out.report.week_label),
                     ai_body=cbody,
-                    warnings=checks.check(cbody, ws, others),
+                    warnings=checks.check(cbody, ws, others) + customer.warnings(out, cid, cfg),
                 )
             )
         )
+    drafts += _mark_dropped(run_id, set(customer.recipients(out)), cfg)
     return drafts
+
+
+def _mark_dropped(run_id: int, recipients: set[str], cfg: dict[str, Any]) -> list[MailDraft]:
+    """예전 고객사 초안 중 이번에 대상에서 빠진 것: 지우지 않고 [대상 제외] 경고 + 승인 풀기.
+
+    발송한 초안은 기록이라 그대로 둔다. 화면에서 보이도록 결과 목록에도 넣는다.
+    """
+    marked: list[MailDraft] = []
+    note = customer.dropped_warning(cfg)
+    for d in repo.list_drafts(run_id):
+        if d.kind != MailKind.customer or d.customer_id in recipients or d.status == "sent":
+            continue
+        if not customer.is_dropped(d):
+            repo.update_draft(d.id, warnings=[note, *d.warnings])
+        if d.status == "approved":
+            repo.revoke_approval(d.id)
+        got = repo.get_draft(d.id)
+        if got:
+            marked.append(got)
+    return marked
