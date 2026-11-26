@@ -50,6 +50,7 @@ button:hover:not(:disabled) { background: var(--primary-soft); border-color: var
 button:disabled { color: #a3afbf; border-color: #e4e9f1; background: #f5f7fa; cursor: not-allowed; }
 button.primary, button[type="submit"] { color: #fff; background: var(--primary); border-color: var(--primary); }
 button.primary:hover:not(:disabled), button[type="submit"]:hover:not(:disabled) { background: var(--primary-dark); }
+button.primary:disabled, button[type="submit"]:disabled { color: #a3afbf; border-color: #e4e9f1; background: #f5f7fa; }
 
 input, select, textarea {
   font: inherit;
