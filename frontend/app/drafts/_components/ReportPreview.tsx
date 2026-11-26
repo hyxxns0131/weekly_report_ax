@@ -25,8 +25,9 @@ const TEXT = {
     `부적합·검사지시 ${s1}건 · 법령 개정 ${s2}건 · 검토 필요 ${review}건`,
   reannounce: "법령 재안내 (섹션 2)",
   reannounceHelp:
-    "새로 시행된 개정이 없는 주에만 섹션 2에 들어갑니다. 고시명·번호·조항·시행일·출처 링크를 함께 적어 주세요.",
-  reannouncePlaceholder: "예) 「○○ 고시」 제2026-00호 (시행 2026-00-00) 주요 내용 …\n출처: https://…",
+    "새로 시행된 개정이 없는 주에만 섹션 2에 들어갑니다. 고시명·번호·조항·시행일·출처 링크를 함께 적고, 실제 메일처럼 마지막에 \"# 요약 :\" 한 줄로 바뀐 점을 정리해 주세요.",
+  reannouncePlaceholder:
+    "예)\n이전에 안내드린 「○○ 고시」(제2026-00호, 시행 2026-00-00)의 개정 사항을 다시 안내드립니다.\n1. 대상 제품: …\n2. 조건: …\n# 요약 : 기존에는 … 이번 개정으로 … 하셔야 합니다.\n출처: https://…",
   save: "섹션 2에 넣기",
   clear: "빼기",
   saved: "저장하고 보고서를 다시 조립했어요.",
@@ -131,7 +132,7 @@ export function ReportPreview({ report }: { report: ReportOut }) {
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          rows={4}
+          rows={7}
           placeholder={TEXT.reannouncePlaceholder}
           style={{ display: "block", width: "100%", boxSizing: "border-box", marginBottom: 8 }}
         />

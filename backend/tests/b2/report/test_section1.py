@@ -28,11 +28,34 @@ def test_staff_body_has_related_only_and_same_maker_first() -> None:
     body, _ = _both(items, names)
     assert "■ 우리 고객사 관련 부적합 (2건)" in body
     assert body.index("샘플 위스키") < body.index("샘플 레드와인")  # 같은 제조사 건이 먼저
-    assert "【같은 제조사】 [2026-11-17] 영국 / 가상 증류소 X / [위스키]" in body
-    assert "관련 화주: A사 (같은 제조사 수입 이력" in body
+    # 실제 메일처럼 표 모양: 머리줄 + 한 건 한 줄
+    assert (
+        "| 부적합일자 | 제조국가 | 제조/수출회사 | 식품유형/품목명 | 위반 내역 | 관련 화주 | 출처 |"
+        in body
+    )
+    assert (
+        "| 2026-11-17 | 영국 | 가상 증류소 X | [위스키] 샘플 위스키 12년(Sample Whisky 12Y)"
+        " | 메탄올 기준 초과 (가상 값) | A사 【같은 제조사】 | https://example.com/sample/unfit/1 |"
+    ) in body
+    assert "수입 이력:" not in body and "키워드)" not in body  # 관련 화주는 이름만, 근거 문장 없음
     assert "■ 통관단계 검사지시 안내 (1건)" in body
-    assert "출처: https://example.com/sample/unfit/1" in body
     assert "샘플 쌀과자" not in body  # 검토 필요 항목은 본문에 넣지 않는다
+
+
+def test_inspection_is_ga_na_da_block() -> None:
+    """통관단계 검사지시: 실제 메일처럼 # 제목 / 가. 나. 다. (고객사 메일은 관련화주 없이)."""
+    items, names = _sample()
+    body = s1.render(s1.pick(items), names, EMPTY)
+    assert (
+        "   # [가상] 통관단계 검사지시\n"
+        "     가. 검사기간 : 2026-11-20 ~ 2027-02-19\n"
+        "     나. 관련화주 : B사\n"
+        "     다. 대상 품목 및 검사항목 : 태국 / 소스 / 확인 필요\n"
+        "     출처: https://example.com/sample/inspection/1"
+    ) in body
+    mine = [i for i in s1.pick(items) if "C002" in s1.matched_ids(i)]
+    mail = s1.render(mine, names, EMPTY, show_customers=False)
+    assert "관련화주" not in mail and "     나. 대상 품목 및 검사항목 : 태국 / 소스" in mail
 
 
 def test_review_items_listed_in_check_block() -> None:
@@ -45,9 +68,8 @@ def test_review_items_listed_in_check_block() -> None:
 def test_blank_fields_show_check_needed() -> None:
     items, names = _sample()
     text = s1.render(s1.pick(items), names, EMPTY)
-    insp = next(ln for ln in text.splitlines() if "태국" in ln)
-    assert "[소스] [가상] 통관단계 검사지시" in insp  # 제품명이 없으면 원문 제목
-    assert "검사 항목: 확인 필요" in insp
+    insp = next(ln for ln in text.splitlines() if "대상 품목 및 검사항목" in ln)
+    assert insp.endswith("태국 / 소스 / 확인 필요")  # 검사항목(원문에 없음) → 확인 필요
 
 
 def test_name_falls_back_to_title_then_check_needed() -> None:
@@ -74,7 +96,7 @@ def test_final_values_override_ai() -> None:
     rice.selection.final_label = Label.relevant  # 담당자가 검토 필요 → 관련으로 확정
     rice.matches[0].final_matched = True  # b1 고객사 판단 화면에서 B사 [유지]
     body, check = _both(items, names)
-    assert "샘플 쌀과자" in body and "관련 화주: B사" in body
+    assert "[과자] 샘플 쌀과자 | 산가 기준 초과 (가상 값) | B사 |" in body
     assert "샘플 위스키" in check and "■ 고객사와 맞지 않은 부적합 (1건)" in check
     assert "■ 검토 필요" not in check
 
@@ -107,7 +129,7 @@ def test_confirmed_and_pending_on_same_item() -> None:
     wine.matches.append(extra)
     body, check = _both(items, names)
     wine_line = next(ln for ln in body.splitlines() if "샘플 레드와인" in ln)
-    assert "관련 화주: A사" in wine_line and "B사" not in wine_line
+    assert "| A사 |" in wine_line and "B사" not in wine_line
     assert "샘플 레드와인(Sample Red Wine) / 확인 전 후보: B사 (가상 후보)" in check
 
 
