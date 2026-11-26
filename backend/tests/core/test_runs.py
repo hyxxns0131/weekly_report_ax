@@ -15,9 +15,7 @@ def test_create_run_and_status(client: TestClient, auth_headers: dict[str, str])
 
     status = client.get(f"/api/core/runs/{run['id']}/status", headers=auth_headers).json()
     assert [s["key"] for s in status["steps"]] == [
-        "collect",
         "select",
-        "extract",
         "match",
         "law",
         "report",
@@ -25,7 +23,7 @@ def test_create_run_and_status(client: TestClient, auth_headers: dict[str, str])
         "send",
         "evaluate",
     ]
-    assert status["current"] == {"b1": "collect", "b2": "report"}
+    assert status["current"] == {"b1": "select", "b2": "report"}
     assert status["materials_ready"] is False
     assert status["todos"] == []
     assert not any(s["done"] for s in status["steps"])
@@ -72,14 +70,14 @@ def test_status_counts_and_todos(client: TestClient, auth_headers: dict[str, str
     _seed(run["id"])
     status = client.get(f"/api/core/runs/{run['id']}/status", headers=auth_headers).json()
     steps = {s["key"]: s for s in status["steps"]}
-    assert steps["collect"]["done"] is True
+    assert "collect" not in steps and "extract" not in steps  # 자료 선별 하나로 합침
     assert steps["select"]["state"] == "current"
-    assert steps["select"]["note"] == "검토 필요 1건"
+    assert steps["select"]["note"].startswith("검토 필요 1건")
     assert status["current"]["b1"] == "select"
     keys = [t["key"] for t in status["todos"]]
     assert "review_needed" in keys
     todo = next(t for t in status["todos"] if t["key"] == "review_needed")
-    assert todo["href"] == "/collect/?step=select&label=review_needed"
+    assert todo["href"] == "/collect/?label=review_needed"
 
 
 def test_notices_read_and_dismiss(client: TestClient, auth_headers: dict[str, str]) -> None:

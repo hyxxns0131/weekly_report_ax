@@ -182,7 +182,7 @@ main            ← 최종 안정 버전 (PM만 반영, PR 승인 필수)
 2. `main.py`: `/api/core`, `/api/b1`, `/api/b2` 라우터 등록 (이후 고정)
 3. 로그인(C-08): `core/auth/`, `app/login/page.tsx`, `layout.tsx`의 로그인 확인, `client.ts`의 토큰 붙이기, `main.py`에서 b1·b2 라우터에 `require_login` 걸기
 4. `b1_select/router.py`: collect·classify·extract·match·law·settings·result 하위 라우터 7개 등록, `b2_mail/router.py`: report·draft·send·evaluate·tips 하위 라우터 5개 등록 (이후 고정)
-5. `layout.tsx`: 사이드바 3개(이번 주 현황·재료 준비·보고서·메일) + 맨 아래 설정, 맨 위 줄(보고 주차·알림 종), `components/ui/StepBar.tsx`·`steps.ts` (이후 고정, DESIGN.md 1-0)
+5. `layout.tsx`: 사이드바 3개(이번 주 현황·자료 선별·고객사 매칭·보고서·메일) + 맨 아래 설정, 맨 위 줄(보고 주차·알림 종), `components/ui/StepBar.tsx`·`steps.ts` (이후 고정, DESIGN.md 1-0)
 6. `core/schema.py`: AGENTS.md 5-5 모델 8종 (이후 고정), `lib/types/core.ts` 같은 모양
 7. `core/period.py`: 보고 기간·주차 계산
 8. `core/storage/schema.sql`: AGENTS.md 5-4 테이블

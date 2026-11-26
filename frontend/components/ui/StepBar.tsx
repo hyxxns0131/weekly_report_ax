@@ -10,8 +10,8 @@ import { color } from "./tokens";
 const TEXT = {
   done: "완료",
   viewing: "지금 보는 단계",
-  notReady: "재료 준비가 아직 끝나지 않았어요. 지금까지의 재료로 만든 미리보기예요.",
-  label: (group: StepGroup) => (group === "b1" ? "재료 준비 단계" : "보고서·메일 단계"),
+  notReady: "자료 선별·고객사 매칭이 아직 끝나지 않았어요. 지금까지의 자료로 만든 미리보기예요.",
+  label: (group: StepGroup) => (group === "b1" ? "자료 선별·고객사 매칭 단계" : "보고서·메일 단계"),
 };
 
 export function StepBar({ group, current }: { group: StepGroup; current: string }) {
