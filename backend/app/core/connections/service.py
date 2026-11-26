@@ -85,7 +85,12 @@ DEFS: list[_Def] = [
         id="google_drive",
         name="구글 드라이브",
         usage="고객사 목록·키워드, 법령자료 폴더 읽기, 확정 보고서 보관",
-        env_names=["GOOGLE_CREDENTIALS_FILE", "GOOGLE_TOKEN_FILE", "DRIVE_LAW_FOLDER_ID"],
+        env_names=[
+            "GOOGLE_CLIENT_ID",
+            "GOOGLE_CLIENT_SECRET",
+            "GOOGLE_TOKEN_FILE",
+            "DRIVE_LAW_FOLDER_ID",
+        ],
     ),
     _Def(
         id="gmail",

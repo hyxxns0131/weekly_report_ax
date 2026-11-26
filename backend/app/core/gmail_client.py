@@ -3,7 +3,9 @@
 - 처음 한 번: `cd backend && .venv\\Scripts\\python -m app.core.gmail_client`
   → 브라우저 로그인 → `GOOGLE_TOKEN_FILE`(token.json) 생성.
 - 서버는 브라우저를 띄우지 않는다. 토큰이 없거나 권한이 모자라면 GoogleAuthError로 이유를 알린다.
-- credentials.json·token.json은 커밋하지 않는다(.gitignore).
+- OAuth 클라이언트는 .env의 GOOGLE_CLIENT_ID·GOOGLE_CLIENT_SECRET에서 읽는다.
+  둘 다 비었으면 예전 방식(GOOGLE_CREDENTIALS_FILE, credentials.json)을 쓴다.
+- .env·credentials.json·token.json은 커밋하지 않는다(.gitignore).
 """
 
 from google.auth.exceptions import RefreshError
@@ -20,8 +22,37 @@ LOGIN_HINT = (
 )
 
 
+CLIENT_HINT = (
+    "구글 OAuth 클라이언트 정보가 없습니다. .env에 GOOGLE_CLIENT_ID와 GOOGLE_CLIENT_SECRET을 "
+    "넣어 주세요(구글 클라우드 → OAuth 클라이언트 ID → 데스크톱 앱). "
+    "예전 방식인 credentials.json 파일을 저장소 맨 위 폴더에 두어도 됩니다."
+)
+AUTH_URI = "https://accounts.google.com/o/oauth2/auth"
+TOKEN_URI = "https://oauth2.googleapis.com/token"
+
+
 class GoogleAuthError(Exception):
     pass
+
+
+def client_config() -> dict[str, dict[str, object]] | None:
+    """.env의 GOOGLE_CLIENT_ID·SECRET으로 OAuth 클라이언트 정보를 메모리에서 만든다.
+
+    둘 중 하나라도 비면 None → login()은 예전 방식(credentials.json)을 쓴다.
+    시크릿 값은 파일·로그에 쓰지 않는다.
+    """
+    s = get_settings()
+    if not (s.google_client_id and s.google_client_secret):
+        return None
+    return {
+        "installed": {
+            "client_id": s.google_client_id,
+            "client_secret": s.google_client_secret,
+            "auth_uri": AUTH_URI,
+            "token_uri": TOKEN_URI,
+            "redirect_uris": ["http://localhost"],
+        }
+    }
 
 
 def get_credentials(scopes: list[str] | None = None) -> Credentials:
@@ -50,14 +81,15 @@ def login(scopes: list[str] | None = None) -> Credentials:
     from google_auth_oauthlib.flow import InstalledAppFlow
 
     s = get_settings()
-    if not s.google_credentials_file.exists():
-        raise GoogleAuthError(
-            f"{s.google_credentials_file.name}이 없습니다. 구글 클라우드에서 OAuth 데스크톱 앱 "
-            "클라이언트를 만들어 받은 파일을 저장소 맨 위 폴더에 두세요."
+    config = client_config()
+    if config is not None:
+        flow = InstalledAppFlow.from_client_config(config, scopes or SCOPES)
+    elif s.google_credentials_file.exists():
+        flow = InstalledAppFlow.from_client_secrets_file(
+            str(s.google_credentials_file), scopes or SCOPES
         )
-    flow = InstalledAppFlow.from_client_secrets_file(
-        str(s.google_credentials_file), scopes or SCOPES
-    )
+    else:
+        raise GoogleAuthError(CLIENT_HINT)
     creds = flow.run_local_server(port=0)
     s.google_token_file.write_text(creds.to_json(), encoding="utf-8")
     return creds
