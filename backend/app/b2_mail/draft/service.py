@@ -76,8 +76,11 @@ def _save(
     - 담당자가 고친 본문(final_body)이 있으면 그 본문을 검사한다. 실제로 나갈 글이라서.
     - 고친 본문이 있는데 AI 본문이 바뀌면 "AI 초안 바뀜"을 단다. 담당자가 다시 저장할 때까지 남긴다.
     - 고친 본문 없이 AI 본문 그대로 승인했는데 AI 본문이 바뀌면 승인을 푼다.
+    - 발송한 초안은 보낸 기록이라 건드리지 않는다 (고치기와 같이 다시 만들기도 막는다).
     """
     old = prev.get((str(new.kind), new.customer_id))
+    if old is not None and old.status == MailStatus.sent:
+        return old
     edited = old is not None and old.final_body is not None
     body = old.final_body if old is not None and old.final_body is not None else new.ai_body
     warnings = check(body) + extra

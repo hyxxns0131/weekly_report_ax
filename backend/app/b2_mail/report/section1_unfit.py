@@ -59,6 +59,15 @@ def pick(items: list[SelectedItem]) -> list[SelectedItem]:
     ]
 
 
+def mail_items(items: list[SelectedItem]) -> list[SelectedItem]:
+    """메일 본문에 들어갈 수 있는 항목: 부적합·통관단계 검사지시만.
+
+    '그 밖의 관련 소식'은 담당자용·고객사 메일 모두 본문에 넣지 않고 확인 목록에만 둔다
+    (담당자가 요약 메일에서 못 본 내용이 고객사에게 나가지 않게).
+    """
+    return [i for i in items if category_of(i) in UNFIT | INSPECTION]
+
+
 def pick_review(items: list[SelectedItem]) -> list[SelectedItem]:
     """담당자 확인용: 선별이 '검토 필요'인 항목 (법령 개정은 섹션 2에서 다룬다)."""
     return [
@@ -281,24 +290,24 @@ def render(
 ) -> str:
     """본문만 만든다. show_customers=True: 담당자용. False: 고객사 메일(그 고객사 항목만).
 
+    두 메일 모두 부적합·검사지시만 넣는다. 그 밖의 관련 소식은 check_lines()에만 나온다.
+
     고객사 메일에 customer_id를 주면 그 고객사와 같은 제조사 건에 표시를 붙이고 맨 위에 둔다.
     확인 목록은 check_lines()로 따로 받는다(화면 전용, 메일 글에 넣지 않음).
     """
     t = _text()
-    unfit, insp, other = _split(items)
+    unfit, insp, _other = _split(items)  # 그 밖의 소식은 본문에 넣지 않는다 (mail_items)
 
     def blocks(group: list[SelectedItem], show: bool) -> list[str]:
         return [ln for i in group for ln in _inspection_block(i, names, show)]
 
     if not show_customers:
-        if not items:
+        if not unfit and not insp:
             return f"  {empty}"
         out: list[str] = []
         table = _unfit_table(_sorted(unfit, customer_id), names, False, customer_id)
         out += _count_group(t["group_unfit"], len(unfit), table, None)
         out += _count_group(t["group_inspection"], len(insp), blocks(insp, False), None)
-        others = [line(i, names, False, customer_id) for i in other]
-        out += _group(t["group_other"], others, None)
         return "\n".join(out)
 
     related_unfit = _sorted([i for i in unfit if confirmed_ids(i)])

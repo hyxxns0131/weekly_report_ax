@@ -161,3 +161,19 @@ def test_history_newest_first_with_body(
 def test_sent_or_missing_draft(client: TestClient, auth_headers: dict[str, str]) -> None:
     res = client.patch("/api/b2/drafts/99999", json={"final_body": "x"}, headers=auth_headers)
     assert res.status_code == 404
+
+
+def test_regenerate_keeps_sent_draft(
+    client: TestClient, auth_headers: dict[str, str], draft_a: dict[str, Any]
+) -> None:
+    """발송한 초안은 다시 만들기를 눌러도 본문·경고·상태가 그대로다 (보낸 기록)."""
+    from app.core.storage import repo
+
+    did = draft_a["id"]
+    repo.update_draft(did, status="sent", ai_body="보낸 그대로의 본문", warnings=["보낸 때 경고"])
+    client.post(f"/api/b2/runs/{draft_a['run_id']}/drafts", headers=auth_headers)
+    got = repo.get_draft(did)
+    assert got is not None
+    assert got.status == "sent"
+    assert got.ai_body == "보낸 그대로의 본문"
+    assert got.warnings == ["보낸 때 경고"]
