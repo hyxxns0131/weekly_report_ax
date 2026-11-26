@@ -45,6 +45,7 @@ def load_selection(run_id: int, token: str | None, source: str = "api") -> Weekl
 def load_customer_names(token: str | None, source: str = "api") -> dict[str, str]:
     """가명 ID → 화면 표시명. 실명은 이 PC 화면·메일 초안 안에서만 쓴다."""
     if source == "sample":
-        return {"C001": "A사", "C002": "B사"}
+        # 가상 고객사만 (config/b1/customers/sample_*.json과 같게). C003은 LSH demo_week.json용.
+        return {"C001": "A사", "C002": "B사", "C003": "C사"}
     rows: list[dict[str, Any]] = _get("/settings/customers", token)
     return {r["customer_id"]: r["display_name"] for r in rows}

@@ -1,15 +1,18 @@
 """섹션 1 부적합·통관단계 검사지시 (DESIGN.md 10-1, 실제 예시 11월 4주차 형식).
 
 - 본문: 고객사 관련 부적합 + 고객사 관련 통관단계 검사지시. 같은 제조사 건을 맨 위에 둔다.
-- 담당자 확인용(발송 전 삭제, check_lines): 고객사와 맞지 않은 부적합·검사지시,
-  그 밖의 관련 소식, 검토 필요. 보고서 맨 끝에 모은다.
+  "관련 화주"에는 확정된 판단만 넣는다: 담당자가 b1에서 [유지]한 것(final_matched=True),
+  또는 담당자 확인 전이라도 신뢰도 높음(같은 제조사·HS·원산지+식품유형).
+  확인 전 + 신뢰도 중간(식품유형만 일치 등, RULES.md 11-2 "검토 필요")은 본문에 넣지 않는다.
+- 화면 전용 확인 목록(check_lines): 고객사 판단 확인 전 후보, 고객사와 맞지 않은
+  부적합·검사지시, 그 밖의 관련 소식, 검토 필요. 메일 글에는 들어가지 않는다.
 - 숫자·날짜는 입력 값만 쓰고, 빈 칸은 "확인 필요". 판단 값은 final_*가 있으면 그것을 쓴다.
 - 문구는 config/b2/report.json의 "section1"에만 둔다.
 """
 
 from typing import Any
 
-from app.core.schema import Category, CustomerMatch, Label, MatchRule, SelectedItem
+from app.core.schema import Category, Confidence, CustomerMatch, Label, MatchRule, SelectedItem
 
 UNFIT = {Category.unfit}
 INSPECTION = {Category.inspection_order}
@@ -29,7 +32,24 @@ def _matched(m: CustomerMatch) -> bool:
 
 
 def matched_ids(item: SelectedItem) -> list[str]:
+    """AI 또는 담당자 기준 '관련'인 고객사 (확인 전 후보 포함). 고객사 메일·검증이 쓴다."""
     return [m.customer_id for m in item.matches if _matched(m)]
+
+
+def _confirmed(m: CustomerMatch) -> bool:
+    """본문에 넣어도 되는 판단: 담당자 [유지], 또는 확인 전이라도 신뢰도 높음."""
+    if m.final_matched is not None:
+        return m.final_matched
+    return m.ai_matched and m.confidence == Confidence.high
+
+
+def confirmed_ids(item: SelectedItem) -> list[str]:
+    return [m.customer_id for m in item.matches if _confirmed(m)]
+
+
+def _pending(item: SelectedItem) -> list[CustomerMatch]:
+    """담당자 확인 전 + 신뢰도 중간 후보. b1 고객사 판단 화면에서 [유지]/[제외]가 필요하다."""
+    return [m for m in item.matches if _matched(m) and not _confirmed(m)]
 
 
 def pick(items: list[SelectedItem]) -> list[SelectedItem]:
@@ -50,7 +70,7 @@ def pick_review(items: list[SelectedItem]) -> list[SelectedItem]:
 
 def same_maker(item: SelectedItem) -> bool:
     """고객사 수입 이력과 제조사가 같은 건 (RULES.md 11-2 순서 1). 강조해서 맨 위에 둔다."""
-    return any(_matched(m) and m.rule == MatchRule.maker for m in item.matches)
+    return any(_confirmed(m) and m.rule == MatchRule.maker for m in item.matches)
 
 
 def _v(x: object) -> str:
@@ -65,16 +85,27 @@ def _text() -> dict[str, Any]:
 
 
 def _product(item: SelectedItem) -> str:
+    """항목 이름 자리: "[식품유형] 제품명".
+
+    제품명이 없는 항목(검사지시 공지, 안내문 등)은 원문 제목을 쓴다.
+    제품명도 제목도 없을 때만 "확인 필요".
+    """
     e = item.extracted
+    title = item.raw.title or MISSING
     if e is None:
-        return item.raw.title or MISSING
-    food = _v(e.food_type_std or e.food_type_raw)
-    name = _v(e.product_name_ko) + (f"({e.product_name_en})" if e.product_name_en else "")
-    return f"[{food}] {name}"
+        return title
+    if e.product_name_ko:
+        name = e.product_name_ko + (f"({e.product_name_en})" if e.product_name_en else "")
+    else:
+        name = e.product_name_en or ""
+    food = e.food_type_std or e.food_type_raw
+    if not name:
+        return f"[{food}] {title}" if food else title  # 공지·안내문: 제목으로 무슨 건인지 보여 준다
+    return f"[{_v(food)}] {name}"
 
 
 def _customers(item: SelectedItem, names: dict[str, str]) -> str:
-    found = [m for m in item.matches if _matched(m)]
+    found = [m for m in item.matches if _confirmed(m)]
     if not found:
         return "없음"
     return " / ".join(f"{names.get(m.customer_id, m.customer_id)} ({m.reason})" for m in found)
@@ -101,6 +132,16 @@ def line(item: SelectedItem, names: dict[str, str], show_customers: bool) -> str
     if show_customers:
         parts.append(f"관련 화주: {_customers(item, names)}")
     return head + " / ".join(parts) + f"\n     출처: {_v(item.raw.url)}"
+
+
+def _pending_line(item: SelectedItem, names: dict[str, str]) -> str:
+    cands = " / ".join(
+        f"{names.get(m.customer_id, m.customer_id)} ({m.reason})" for m in _pending(item)
+    )
+    return (
+        f"   - [{_v(item.raw.posted_at)}] {_product(item)} / 확인 전 후보: {cands}"
+        f"\n     출처: {_v(item.raw.url)}"
+    )
 
 
 def _review_line(item: SelectedItem) -> str:
@@ -134,7 +175,7 @@ def render(
 ) -> str:
     """본문만 만든다. show_customers=True: 담당자용. False: 고객사 메일(그 고객사 항목만).
 
-    담당자 확인용 목록은 check_lines()로 따로 받아 service.py가 보고서 맨 끝에 모은다.
+    확인 목록은 check_lines()로 따로 받는다(화면 전용, 메일 글에 넣지 않음).
     """
     t = _text()
     unfit, insp, other = _split(items)
@@ -148,8 +189,8 @@ def render(
         out += _group(t["group_other"], [line(i, names, False) for i in other], None)
         return "\n".join(out)
 
-    related_unfit = _sorted([i for i in unfit if matched_ids(i)])
-    related_insp = _sorted([i for i in insp if matched_ids(i)])
+    related_unfit = _sorted([i for i in unfit if confirmed_ids(i)])
+    related_insp = _sorted([i for i in insp if confirmed_ids(i)])
     # 매주 같은 틀: 본문 묶음은 비어도 남기고 "해당 없음"을 넣는다
     out = [f"  {s}" for s in t["intro"]]
     out.append(f"  {t['source_unfit']}")
@@ -162,12 +203,14 @@ def render(
 def check_lines(
     items: list[SelectedItem], names: dict[str, str], review: list[SelectedItem]
 ) -> list[str]:
-    """담당자 확인용(발송 전 삭제): 고객사와 맞지 않은 부적합·검사지시, 그 밖의 소식, 검토 필요."""
+    """화면 전용 확인 목록: 판단 확인 전, 맞지 않은 부적합·검사지시, 그 밖의 소식, 검토 필요."""
     t = _text()
     unfit, insp, other = _split(items)
     no_unfit = [i for i in unfit if not matched_ids(i)]
     no_insp = [i for i in insp if not matched_ids(i)]
+    pending = [i for i in unfit + insp if _pending(i)]
     out: list[str] = []
+    out += _group(t["group_unconfirmed"], [_pending_line(i, names) for i in pending], None)
     out += _group(t["group_unmatched_unfit"], [line(i, names, True) for i in no_unfit], None)
     out += _group(t["group_unmatched_inspection"], [line(i, names, True) for i in no_insp], None)
     out += _group(t["group_other"], [line(i, names, True) for i in other], None)

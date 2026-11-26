@@ -3,9 +3,10 @@ import type { WeeklyReport } from "./core";
 
 export interface ReportOut {
   report: WeeklyReport;
-  text: string;
+  text: string; // 메일로 나가는 본문만
   review_needed: number;
   customer_names: Record<string, string>;
+  check: string; // 화면 전용 확인 목록 (메일 초안에 넣지 않음). 없으면 ""
 }
 
 export interface DraftHistoryRow {
