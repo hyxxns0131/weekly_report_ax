@@ -22,6 +22,8 @@ export function SendPanel({ draft, sendEnabled, onChanged }: { draft: MailDraft;
     }
   };
   const dropped = isDropped(draft);
+  // globals.css의 button.primary가 비활성 회색을 덮어써서, 막혔을 때는 primary를 빼서 회색으로 보이게 한다
+  const approveBlocked = dropped || draft.status !== "draft" || (draft.warnings.length > 0 && !ack);
   return (
     <div style={{ marginTop: 8 }}>
       {dropped && (
@@ -33,7 +35,7 @@ export function SendPanel({ draft, sendEnabled, onChanged }: { draft: MailDraft;
         </label>
       )}
       <button type="button" disabled={dropped} onClick={() => run(() => toGmailDraft(draft.id), "Gmail 초안함에 저장했습니다.")}>Gmail 초안함에 저장</button>{" "}
-      <button type="button" className="primary" disabled={dropped || draft.status !== "draft" || (draft.warnings.length > 0 && !ack)}
+      <button type="button" className={approveBlocked ? undefined : "primary"} disabled={approveBlocked}
         onClick={() => run(() => approve(draft.id, ack), "승인했습니다.")}>승인</button>{" "}
       <button type="button" disabled={draft.status !== "approved" || !sendEnabled}
         onClick={() => run(() => send(draft.id), "발송했습니다.")}>발송</button>
