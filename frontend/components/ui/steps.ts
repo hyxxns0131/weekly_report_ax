@@ -10,14 +10,12 @@ export interface StepDef {
 }
 
 export const GROUPS: Record<StepGroup, { name: string; owner: string; href: string }> = {
-  b1: { name: "재료 준비", owner: "LSH", href: "/collect/" },
+  b1: { name: "자료 선별·고객사 매칭", owner: "LSH", href: "/collect/" },
   b2: { name: "보고서·메일", owner: "KHW", href: "/drafts/" },
 };
 
 export const STEPS: StepDef[] = [
-  { key: "collect", group: "b1", name: "자료 모으기", href: "/collect/?step=collect" },
-  { key: "select", group: "b1", name: "선별", href: "/collect/?step=select" },
-  { key: "extract", group: "b1", name: "정보 뽑기", href: "/collect/?step=extract" },
+  { key: "select", group: "b1", name: "자료 선별", href: "/collect/" },
   { key: "match", group: "b1", name: "고객사 판단", href: "/customers/" },
   { key: "law", group: "b1", name: "법령 정리", href: "/law/" },
   { key: "report", group: "b2", name: "보고서 조립", href: "/drafts/?step=report" },
@@ -35,7 +33,7 @@ export function stepHref(key: string | null, group: StepGroup): string {
 }
 
 const PAGE_STEPS: Record<string, { group: StepGroup; keys: string[] }> = {
-  "/collect/": { group: "b1", keys: ["collect", "select", "extract"] },
+  "/collect/": { group: "b1", keys: ["select"] },
   "/customers/": { group: "b1", keys: ["match"] },
   "/law/": { group: "b1", keys: ["law"] },
   "/drafts/": { group: "b2", keys: ["report", "draft", "send"] },

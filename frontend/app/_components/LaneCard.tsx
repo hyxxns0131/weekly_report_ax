@@ -7,7 +7,7 @@ import type { RunStatus, StepGroup } from "../../lib/types/core";
 const TEXT = {
   now: "지금",
   allDone: "모든 단계 완료",
-  waiting: "재료를 기다리는 중",
+  waiting: "자료를 기다리는 중",
   resume: "이어서 하기",
   failed: (n: number) => `수집 실패 ${n}곳 → 직접 올리기`,
 };
@@ -48,7 +48,7 @@ export function LaneCard({ group, status }: { group: StepGroup; status: RunStatu
       </ul>
       {group === "b1" && status.counts.collect_failed > 0 && (
         <p style={{ margin: "10px 0 0", color: color.danger, fontSize: 14 }}>
-          ✖ <Link href="/collect/?step=collect">{TEXT.failed(status.counts.collect_failed)}</Link>
+          ✖ <Link href="/collect/">{TEXT.failed(status.counts.collect_failed)}</Link>
         </p>
       )}
       <div style={{ display: "flex", alignItems: "center", marginTop: 14 }}>
