@@ -243,3 +243,31 @@ def test_reannounce_reaches_customer_mail(
     for d in _by_customer(drafts).values():
         assert "가상 고시 재안내 문장" in d["ai_body"]
         assert "해당 없습니다" not in d["ai_body"].split("2. 주간 법령")[1].split("3. ")[0]
+
+
+def test_other_news_not_in_customer_mail(
+    client: TestClient, auth_headers: dict[str, str], use_demo: Loader
+) -> None:
+    """'그 밖의 관련 소식'은 담당자 메일처럼 고객사 메일 본문에도 넣지 않는다.
+
+    C사를 그 밖의 소식(policy_news)에만 확정으로 걸고 Ocean Foods 판단은 [제외]하면
+    C사 메일은 만들지 않는다 (담당자가 요약 메일에서 못 본 내용이 고객사에게 나가지 않게).
+    """
+    news_id = "impfood_law_policy:9cfd7ccde0d0"
+    ocean_id = "impfood_unfit:14493e031f0f"
+
+    def change(data: dict[str, Any]) -> None:
+        items = {i["raw"]["id"]: i for i in data["items"]}
+        ocean = items[ocean_id]
+        c003 = next(m for m in ocean["matches"] if m["customer_id"] == "C003")
+        c003["final_matched"] = False
+        news = items[news_id]
+        news["matches"] = [{**c003, "item_id": news_id, "final_matched": True}]
+
+    use_demo(change)
+    drafts = _drafts(client, auth_headers, _run(client, auth_headers))
+    title = json.loads(DEMO.read_text(encoding="utf-8"))
+    news_title = next(i["raw"]["title"] for i in title["items"] if i["raw"]["id"] == news_id)
+    assert "C003" not in _by_customer(drafts)
+    for d in drafts:
+        assert news_title not in d["ai_body"], d["customer_id"]

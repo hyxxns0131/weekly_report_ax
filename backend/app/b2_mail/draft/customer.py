@@ -2,6 +2,8 @@
 
 - 본문에는 담당자 메일과 같은 기준으로 '확정된' 판단만 넣는다
   (담당자 [유지], 또는 확인 전이라도 신뢰도 높음 = section1_unfit.confirmed_ids).
+- 담당자 메일과 같이 부적합·통관단계 검사지시만 다룬다 (section1_unfit.mail_items).
+  그 밖의 관련 소식만 있는 고객사에는 메일을 만들지 않는다.
 - 확인 전 후보(신뢰도 중간)는 본문에 넣지 않고 warnings()로 초안 경고에만 남긴다.
   확인 전 후보만 있는 고객사에는 메일을 만들지 않는다 (pending_only).
 - 예전에 만든 초안의 고객사가 다시 만들 때 대상에서 빠지면, 초안은 지우지 않고
@@ -20,14 +22,18 @@ from app.core.schema import MailDraft, SelectedItem
 
 def related_items(out: ReportOut, customer_id: str) -> list[SelectedItem]:
     """본문에 넣을 항목: 그 고객사와의 판단이 확정된 것만."""
-    return [i for i in out.report.section1_items if customer_id in section1_unfit.confirmed_ids(i)]
+    return [
+        i
+        for i in section1_unfit.mail_items(out.report.section1_items)
+        if customer_id in section1_unfit.confirmed_ids(i)
+    ]
 
 
 def pending_items(out: ReportOut, customer_id: str) -> list[SelectedItem]:
     """확인 전 후보: 관련으로 나왔지만 아직 확정되지 않은 항목 (본문에 넣지 않음)."""
     return [
         i
-        for i in out.report.section1_items
+        for i in section1_unfit.mail_items(out.report.section1_items)
         if customer_id in section1_unfit.matched_ids(i)
         and customer_id not in section1_unfit.confirmed_ids(i)
     ]
@@ -36,13 +42,21 @@ def pending_items(out: ReportOut, customer_id: str) -> list[SelectedItem]:
 def recipients(out: ReportOut) -> list[str]:
     """안내 메일을 만들 고객사: 확정된 관련 항목이 1건 이상인 곳."""
     return sorted(
-        {cid for i in out.report.section1_items for cid in section1_unfit.confirmed_ids(i)}
+        {
+            cid
+            for i in section1_unfit.mail_items(out.report.section1_items)
+            for cid in section1_unfit.confirmed_ids(i)
+        }
     )
 
 
 def pending_only(out: ReportOut) -> list[str]:
     """확인 전 후보만 있어 메일을 만들지 않은 고객사."""
-    candidates = {cid for i in out.report.section1_items for cid in section1_unfit.matched_ids(i)}
+    candidates = {
+        cid
+        for i in section1_unfit.mail_items(out.report.section1_items)
+        for cid in section1_unfit.matched_ids(i)
+    }
     return sorted(candidates - set(recipients(out)))
 
 
