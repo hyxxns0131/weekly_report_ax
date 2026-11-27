@@ -72,15 +72,18 @@ def test_missing_file_fails_only_that_source(
     assert all(by[s]["status"] == "ok" for s in DEMO_SOURCES if s != "impfood_unfit")
 
 
-def test_auto_mode_not_ready_is_failed(
+def test_api_down_fails_only_that_source(
     client: TestClient, auth_headers: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """API가 연결되지 않으면(테스트는 conftest가 막음) 그 출처만 실패, 나머지는 계속."""
     original = service.source_config()
     monkeypatch.setattr(
         service,
         "source_config",
-        lambda: [{**s, "mode": "auto"} if s["id"] == "mfds_notice" else s for s in original],
+        lambda: [{**s, "mode": "api"} if s["id"] == "mfds_notice" else s for s in original],
     )
+    monkeypatch.setenv("MFDS_NOTICE_API", "https://apis.data.go.kr/0000000/virtual/getList")
+    monkeypatch.setenv("DATA_GO_KR_SERVICE_KEY", "virtual-key")
     h = auth_headers
     run_id = _run(client, h)
     by = {
@@ -90,7 +93,7 @@ def test_auto_mode_not_ready_is_failed(
         ).json()
     }
     assert by["mfds_notice"]["status"] == "failed"
-    assert "실제 수집기 준비 전" in by["mfds_notice"]["message"]
+    assert "수집 실패" in by["mfds_notice"]["message"]
     assert by["impfood_unfit"]["status"] == "ok"
 
 
