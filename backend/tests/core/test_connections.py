@@ -21,7 +21,12 @@ def test_list_all(client: TestClient, auth_headers: dict[str, str]) -> None:
     assert ids == ["ai", "supabase_read", "supabase_write", "google_drive", "gmail", "law_api"]
 
 
-def test_missing_setting_test_says_why(client: TestClient, auth_headers: dict[str, str]) -> None:
+def test_missing_setting_test_says_why(
+    client: TestClient, auth_headers: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # PC의 실제 .env에 LAW_API_OC가 있어도 "키 없음"을 확인하도록 비운다 (LSH PR #31 요청)
+    monkeypatch.setenv("LAW_API_OC", "")
+    get_settings.cache_clear()
     r = client.post("/api/core/connections/law_api/test", headers=auth_headers).json()
     assert r["state"] == "no_key"
     assert r["last_test"]["ok"] is False and "LAW_API_OC" in r["last_test"]["message"]
