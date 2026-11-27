@@ -47,13 +47,18 @@ def split_tag(value: str) -> tuple[str, str | None]:
     return TAG.sub(" ", value).strip(), m.group(1).strip()
 
 
+# 꼬리표("[가공식품] …")를 떼는 칸. 위반내역 등의 "[기준: 불검출]" 같은 괄호는 원문 그대로 둔다.
+TAGGED_FIELDS = {"food_type_raw", "product_name_ko"}
+
+
 def map_row(row: dict[str, str]) -> dict[str, str]:
     out: dict[str, str] = {}
     for k, v in row.items():
         key = k.strip()
         if key in IGNORED_COLUMNS or key not in COLUMN_MAP or not v:
             continue
-        clean, _ = split_tag(v)
+        field = COLUMN_MAP[key]
+        clean = split_tag(v)[0] if field in TAGGED_FIELDS else v.strip()
         if clean:
-            out[COLUMN_MAP[key]] = clean
+            out[field] = clean
     return out
