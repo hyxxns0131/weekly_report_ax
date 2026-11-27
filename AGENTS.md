@@ -677,7 +677,7 @@ prefix: `/api/core`(KHS), `/api/b1`(LSH), `/api/b2`(KHW). 라우터 등록은 `m
 | 실행 | APP_ENV, API_HOST, API_PORT, CORS_ORIGINS, TZ_NAME, DATA_DIR, LOCAL_DB_PATH |
 | AI | LLM_ENABLED, AI_PROVIDER, ANTHROPIC_API_KEY, CLAUDE_MODEL, OPENAI_API_KEY, OPENAI_MODEL, MASK_CUSTOMER_NAMES |
 | 구글 | GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CREDENTIALS_FILE(예전 방식, 위 2개가 비었을 때만), GOOGLE_TOKEN_FILE, DRIVE_CUSTOMERS_FOLDER_ID, DRIVE_REPORTS_FOLDER_ID, DRIVE_LAW_FOLDER_ID, GMAIL_INBOX_QUERY, GMAIL_SENDER, GMAIL_STAFF_TO, MAIL_SEND_ENABLED |
-| 공공 데이터 | LAW_API_OC, DATA_GO_KR_SERVICE_KEY, FOODSAFETY_API_KEY, COLLECT_USER_AGENT, COLLECT_DELAY_SEC |
+| 공공 데이터 | LAW_API_OC, DATA_GO_KR_SERVICE_KEY, FOODSAFETY_API_KEY, COLLECT_USER_AGENT, COLLECT_DELAY_SEC, 출처별 `<출처ID>_API`·`<출처ID>_API_KEY` 5쌍(IMPFOOD_UNFIT, IMPFOOD_INSPECTION, IMPFOOD_LAW_POLICY, MFDS_NOTICE, GYEONGIN_NEWSLETTER, 선택) |
 | Supabase | SUPABASE_URL, SUPABASE_ANON_KEY(publishable 키), SUPABASE_SERVICE_ROLE_KEY(secret 키, PM만). 확인 위치는 5-2-1 |
 | 로그인 | ADMIN_USERNAME, ADMIN_PASSWORD, AUTH_SECRET_KEY, AUTH_SESSION_HOURS |
 | 화면 | `frontend/.env.local`: NEXT_PUBLIC_API_BASE (비밀값 금지) |
@@ -709,6 +709,7 @@ prefix: `/api/core`(KHS), `/api/b1`(LSH), `/api/b2`(KHW). 라우터 등록은 `m
 - [ ] 법령 API 결과가 식약처가 매주 올리는 공문과 일치하는지, 공문은 어느 메일·게시판으로 오는지
 - [ ] 출처별 이용약관·자동 수집 가능 여부 (정보마루는 공개 API 없음)
 - [ ] 정보마루 부적합 목록의 식품 분류 코드 전체, 통관단계 검사지시 화면 형식
+- [ ] 부적합 출처 대체: 정보마루 수입식품 부적합 목록과 같은 공개 API를 찾지 못해 식품안전나라 I0490(회수·판매중지)으로 대신 받는다(11/27 LSH PR #33). 그대로 써도 되는지, 다른 공식 경로가 있는지
 - [ ] HS 코드 매칭: 공개 부적합 목록에 HS 코드 칸이 없음. 어디서 HS를 가져오는지, HS 개정 시 처리
 - [ ] 법령 개정 대상 법령·고시 목록 (기존 도구는 기구 고시 2개만. 수입식품 전체 목록은 최신본 확인 필요)
 - [ ] 보고 규칙을 기존 도구대로 쓸지: 실행 요일(기존 금요일 17:00), 지난주/이번 주, "새로 시행된 개정만", 행정예고 제외
