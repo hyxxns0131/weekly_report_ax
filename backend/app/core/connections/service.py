@@ -237,7 +237,8 @@ def _check_gmail() -> str:
     if not any(sc.startswith(GMAIL_SCOPE_PREFIX) for sc in (creds.scopes or [])):
         raise CheckFailed(
             "구글 로그인은 되어 있지만 Gmail 권한이 아직 없습니다. "
-            "Gmail 기능(B1-07·B2-05)을 붙일 때 권한을 더해 다시 로그인합니다."
+            "권한을 더한 뒤 다시 로그인해 주세요: "
+            "backend 폴더에서 `.venv\\Scripts\\python -m app.core.gmail_client`"
         )
     return "Gmail 권한 있음"
 

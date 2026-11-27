@@ -58,6 +58,9 @@ class Settings(BaseModel):
     google_credentials_file: Path = REPO_ROOT / "credentials.json"  # 예전 방식(위 2개가 비었을 때)
     google_token_file: Path = REPO_ROOT / "token.json"
     drive_law_folder_id: str = ""
+    drive_reports_folder_id: str = ""  # 확정 보고서·보낸 메일 보관 폴더 (B2-08)
+    gmail_sender: str = ""  # 발송 계정 (B2-05)
+    gmail_staff_to: str = ""  # 담당자용 요약 메일 받는 사람 (쉼표로 여러 명)
 
     admin_username: str = ""
     admin_password: str = ""
@@ -113,6 +116,9 @@ def get_settings() -> Settings:
         ),
         google_token_file=_path(env.get("GOOGLE_TOKEN_FILE"), REPO_ROOT / "token.json"),
         drive_law_folder_id=(env.get("DRIVE_LAW_FOLDER_ID") or "").split("#")[0].strip(),
+        drive_reports_folder_id=(env.get("DRIVE_REPORTS_FOLDER_ID") or "").split("#")[0].strip(),
+        gmail_sender=(env.get("GMAIL_SENDER") or "").strip(),
+        gmail_staff_to=(env.get("GMAIL_STAFF_TO") or "").strip(),
         admin_username=env.get("ADMIN_USERNAME", ""),
         admin_password=env.get("ADMIN_PASSWORD", ""),
         auth_secret_key=env.get("AUTH_SECRET_KEY", ""),
