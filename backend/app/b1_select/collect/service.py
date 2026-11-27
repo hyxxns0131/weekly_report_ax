@@ -1,10 +1,18 @@
-"""B1-01~07 수집 처리 순서. 한 출처가 실패해도 다른 출처는 계속한다."""
+"""B1-01~07 수집 처리 순서. 한 출처가 실패해도 다른 출처는 계속한다.
+
+출처 → (공식 API: 설정이 있을 때 | 수동 업로드: 없을 때 | 더미: mode=demo) → RawItem
+     → 로컬 DB(raw_item·collect_log)
+     └ API에서 온 것만 서버 DB(Supabase pub_source_item)
+로컬 DB에 들어간 원문은 그대로 선별(B1-08) → 추출(B1-09) → 고객사 판단(B1-11)으로 이어진다.
+화면 읽기(크롤링)는 하지 않는다.
+"""
 
 import json
 from collections.abc import Callable
 from datetime import date
 from typing import Any
 
+from app.b1_select.collect import api_client, server_db
 from app.b1_select.collect.base import CollectResult
 from app.b1_select.collect.sources import (
     gyeongin_newsletter,
@@ -53,7 +61,8 @@ def collect(run_id: int, selected: list[str] | None) -> list[CollectResult]:
     if not selected or supabase_public.NAME in selected:
         results.append(save(run_id, supabase_public.collect(run_id, start, end)))
 
-    # 2) 사이트별 수집기: sources.json의 mode(demo | auto | manual)를 따른다.
+    # 2) 출처별 수집기: sources.json의 mode(api | demo | manual)를 따른다.
+    #    api = API 설정이 있으면 API, 없으면 수동 업로드. demo = 늘 더미.
     for s in source_config():
         sid = s["id"]
         if selected and sid not in selected:
@@ -80,5 +89,8 @@ def collect(run_id: int, selected: list[str] | None) -> list[CollectResult]:
             result = collector(run_id, start, end, s)
         except Exception as e:  # noqa: BLE001 - 한 출처 실패가 전체를 멈추지 않게
             result = CollectResult(source=sid, status="failed", message=f"수집 실패: {e}")
+        if result.status == "ok" and result.items and api_client.uses_api(sid, s):
+            note = server_db.save(result.items)
+            result.message = " · ".join(m for m in (result.message, note) if m)
         results.append(save(run_id, result))
     return results

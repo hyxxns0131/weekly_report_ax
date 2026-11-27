@@ -35,7 +35,7 @@ const TEXT = {
   selectTitle: "고객사 선별하기",
   selectDesc: "출처에서 이번 주 소식을 모으고, 수입식품 관련만 고른 뒤, 규칙대로 관련 고객사를 찾습니다.",
   selectHelp: [
-    "① 출처 수집: 정보마루·식약처·경인청·법제처 (지금은 저장해 둔 데모 응답)",
+    "① 출처 수집: 공식 Open API (.env에 출처별 API·키가 있을 때). 없는 출처는 수동 업로드",
     "② 선별: 순서형 규칙 Q1~Q4로 관련·무관·검토 필요",
     "③ 고객사 찾기: 같은 제조사 → HS 코드 → 원산지+식품유형 → 식품유형만",
   ],
@@ -159,11 +159,12 @@ async function runAll(current: Run | null): Promise<{ run: Run; data: OneClickDa
   // ④ 법령 개정
   const law = await fetchLaw(run.id);
   // ⑤ 결과 읽기
-  const [items, matches, laws, customers] = await Promise.all([
+  const [items, matches, laws, customers, sources] = await Promise.all([
     getItems(run.id),
     getMatches(run.id),
     getLaw(run.id),
     getCustomers(),
+    getSourceStatus(run.id),
   ]);
   const failed = [
     ...collected
@@ -171,7 +172,7 @@ async function runAll(current: Run | null): Promise<{ run: Run; data: OneClickDa
       .map((c) => `${names.get(c.source) ?? c.source}(${c.message})`),
     ...law.errors.map((e) => `${TEXT.lawSource}(${e})`),
   ];
-  return { run, data: { items, matches, laws, customers, failed } };
+  return { run, data: { items, matches, laws, customers, failed, sources } };
 }
 
 function errorText(e: unknown): string {
@@ -220,6 +221,7 @@ function SelectBox({ run, view, onRun }: { run: Run | null; view: View; onRun: (
           </span>
         ))}
       </InnerBox>
+      {view.kind === "ok" && view.data.sources.length > 0 && <SourceStatus rows={view.data.sources} compact />}
       {view.kind === "loading" && <Loading />}
       {view.kind === "error" && <ErrorState message={view.message} onRetry={onRun} />}
       {view.kind === "ok" && view.data.failed.length > 0 && (

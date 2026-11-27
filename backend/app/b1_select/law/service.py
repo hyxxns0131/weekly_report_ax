@@ -7,6 +7,8 @@
   (저장해 둔 응답)만 읽는다.
   외부 호출(법제처·드라이브·Supabase)을 하지 않으므로 LAW_API_OC가 없어도 돈다.
 - mode="auto"면 위 세 출처(법제처 API → 드라이브 → Supabase)를 읽는다.
+  단, LAW_API_OC와 DRIVE_LAW_FOLDER_ID가 모두 비어 있으면 더미(demo)로 돈다.
+  .env에 OC를 넣으면 바로 법제처 OPEN API로 바뀐다 (수집 출처들과 같은 규칙).
 한 출처가 실패해도 다른 출처는 계속하고, 실패 이유를 돌려준다.
 담당자가 고친 final_summary·related_food_types는 덮어쓰지 않는다.
 """
@@ -134,7 +136,8 @@ def fetch(run_id: int) -> LawFetchResult:
     start, end = date.fromisoformat(run.period_start), date.fromisoformat(run.period_end)
     errors: list[str] = []
     cfg = law_source()
-    if cfg.get("mode") == "demo":
+    s = get_settings()
+    if cfg.get("mode") == "demo" or not (s.law_api_oc or s.drive_law_folder_id):
         found = {c.id: c for c in _from_demo(cfg, errors)}
     else:
         found = {c.id: c for c in _from_law_api(errors)}

@@ -14,7 +14,8 @@ export interface SourceStatus {
   status: "ok" | "failed" | "manual" | "off" | "waiting";
   count: number;
   message: string;
-  at: string | null;
+  at: string | null; // 마지막 수집 시각
+  latest_posted_at: string | null; // 이 실행에 들어온 그 출처 원문 중 가장 최근 게시일
 }
 
 export interface ItemRow {
@@ -79,4 +80,5 @@ export interface OneClickData {
   laws: LawChange[];
   customers: CustomerSetting[];
   failed: string[];
+  sources: SourceStatus[]; // 출처별 수집 상태·업데이트 날짜
 }

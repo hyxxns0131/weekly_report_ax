@@ -36,7 +36,8 @@ class SourceStatus(BaseModel):
     status: str
     count: int
     message: str
-    at: str | None
+    at: str | None  # 마지막 수집 시각 (collect_log)
+    latest_posted_at: str | None = None  # 이 실행에 들어온 그 출처 원문 중 가장 최근 게시일
 
 
 def _run_or_404(run_id: int) -> None:
@@ -73,6 +74,13 @@ def source_status(run_id: int) -> list[SourceStatus]:
     logs = {r["source"]: r for r in repo.list_collect_log(run_id)}
     names = {s["id"]: s["name"] for s in service.source_config()}
     names[supabase_public.NAME] = "Supabase 공개 정보 DB"
+    latest: dict[str, str] = {}
+    for raw in repo.list_raw(run_id):
+        if raw.posted_at is None:
+            continue
+        sid, day = raw.source.value, raw.posted_at.isoformat()
+        if day > latest.get(sid, ""):
+            latest[sid] = day
     out = []
     for sid, name in names.items():
         if sid == "law_api":
@@ -86,6 +94,7 @@ def source_status(run_id: int) -> list[SourceStatus]:
                 count=r["count"] if r else 0,
                 message=r["message"] if r else "",
                 at=r["at"] if r else None,
+                latest_posted_at=latest.get(sid),
             )
         )
     return out
