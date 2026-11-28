@@ -41,9 +41,11 @@ def send(d: MailDraft) -> str:
     if not gmail_draft.recipients(d):
         raise SendRejected(409, NO_STAFF_TO if d.kind == MailKind.staff_summary else NO_CUSTOMER_TO)
     try:
-        gid = gmail_draft.save_to_gmail(d)
+        gid = gmail_draft.save_to_gmail(d, recreate_if_missing=False)
         repo.update_draft(d.id, gmail_draft_id=gid)
         message_id = gmail_draft.send_gmail_draft(gid)
+    except gmail_draft.GmailMissing as e:
+        raise SendRejected(409, str(e)) from e
     except gmail_draft.GmailNotReady as e:
         raise SendRejected(503, str(e)) from e
     except gmail_draft.GmailFailed as e:

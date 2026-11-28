@@ -38,8 +38,17 @@ class GmailLocked(Exception):
     """이미 발송한 초안 (409)."""
 
 
+class GmailMissing(Exception):
+    """발송하려는데 Gmail 초안이 사라짐 (409). Gmail에서 직접 보냈을 수 있어 다시 만들지 않는다."""
+
+
+TIMEOUT_SEC = 30  # 외부 호출 시간 제한 (RULES.md: 외부 호출은 timeout을 둔다)
+
+
 def gmail_service() -> Any:
     """Gmail API 클라이언트. 테스트에서는 이 함수를 가짜로 바꾼다."""
+    import httplib2
+    from google_auth_httplib2 import AuthorizedHttp
     from googleapiclient.discovery import build
 
     from app.core.gmail_client import GMAIL_COMPOSE, GoogleAuthError, get_credentials
@@ -48,7 +57,8 @@ def gmail_service() -> Any:
         creds = get_credentials([GMAIL_COMPOSE])
     except GoogleAuthError as e:
         raise GmailNotReady(f"{NOT_READY} (사유: {e})") from e
-    return build("gmail", "v1", credentials=creds, cache_discovery=False)
+    http = AuthorizedHttp(creds, http=httplib2.Http(timeout=TIMEOUT_SEC))
+    return build("gmail", "v1", http=http, cache_discovery=False)
 
 
 def body_of(d: MailDraft) -> str:
@@ -105,8 +115,22 @@ def _call(fn: Any) -> Any:
         raise GmailFailed(f"Gmail 요청이 실패했습니다 ({code}). 잠시 뒤 다시 눌러 주세요.") from e
 
 
-def save_to_gmail(d: MailDraft) -> str:
-    """Gmail 초안함에 저장하고 Gmail 초안 ID를 돌려준다. 있던 초안이면 내용을 바꾼다."""
+MISSING = (
+    "Gmail 초안함에서 이 초안이 사라졌습니다. "
+    "Gmail에서 이미 보냈는지 [보낸편지함]을 확인해 주세요. "
+    "두 번 나가지 않도록 여기서는 보내지 않았습니다. "
+    "보내지 않았다면 [Gmail 초안함에 다시 저장] 뒤 발송해 주세요."
+)
+
+
+def save_to_gmail(d: MailDraft, recreate_if_missing: bool = True) -> str:
+    """Gmail 초안함에 저장하고 Gmail 초안 ID를 돌려준다. 있던 초안이면 내용을 바꾼다.
+
+    있던 Gmail 초안이 사라졌을 때(404):
+    - [Gmail 초안함에 저장]: 새로 만든다 (담당자가 지운 경우).
+    - 발송 직전(recreate_if_missing=False): 만들지 않고 GmailMissing.
+      Gmail에서 직접 보낸 뒤일 수 있어서, 다시 만들어 보내면 같은 메일이 두 번 나간다.
+    """
     if d.status == MailStatus.sent:
         raise GmailLocked("이미 발송한 초안은 Gmail 초안함에 다시 저장할 수 없습니다.")
     drafts = gmail_service().users().drafts()
@@ -115,9 +139,10 @@ def save_to_gmail(d: MailDraft) -> str:
             got = _call(drafts.update(userId="me", id=d.gmail_draft_id, body=_raw(d)))
             return str(got["id"])
         except GmailFailed as e:
-            # 담당자가 Gmail에서 초안을 지웠으면(404) 새로 만든다
             if _status_of(e.__cause__ or e) != 404:
                 raise
+            if not recreate_if_missing:
+                raise GmailMissing(MISSING) from e
     got = _call(drafts.create(userId="me", body=_raw(d)))
     return str(got["id"])
 

@@ -26,6 +26,8 @@ const TEXT = {
   noStaffTo: "받는 사람 미설정 (.env GMAIL_STAFF_TO, KHS)",
   noCustomerTo: "고객사 메일 주소는 연결 전입니다(미팅 뒤). Gmail 초안함에 저장한 뒤 Gmail에서 받는 사람을 넣어 주세요.",
   staffTo: (n: number) => `받는 사람: 담당자 ${n}명`,
+  // mail.json body_format: html이면 일반 글과 표가 있는 HTML을 함께 넣는다
+  bodyFormat: (f: string) => (f === "html" ? "본문: HTML 표 + 일반 글" : "본문: 일반 글만"),
 };
 
 export function SendPanel({ draft, info, onChanged }: { draft: MailDraft; info: SendInfo; onChanged: () => void }) {
@@ -68,6 +70,7 @@ export function SendPanel({ draft, info, onChanged }: { draft: MailDraft; info: 
       )}
       <p style={{ color: color.muted, margin: "4px 0" }}>
         {staff ? (hasTo ? TEXT.staffTo(info.staff_to_count) : TEXT.noStaffTo) : TEXT.noCustomerTo}
+        {" · "}{TEXT.bodyFormat(info.body_format)}
       </p>
       <button type="button" disabled={busy || dropped || sent}
         onClick={() => run(() => toGmailDraft(draft.id), TEXT.gmailOk)}>

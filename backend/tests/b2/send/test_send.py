@@ -213,3 +213,36 @@ def test_send_info_hides_addresses(client: TestClient, auth_headers: H) -> None:
     info = client.get("/api/b2/send/info", headers=auth_headers).json()
     assert info == {"mail_send_enabled": True, "staff_to_count": 2, "body_format": "html"}
     assert "example.com" not in str(info)
+
+
+def test_send_stops_when_gmail_draft_gone(
+    client: TestClient, auth_headers: H, drafts: dict[str, Any], fake_gmail: FakeDrafts
+) -> None:
+    """Gmail에서 직접 보내 초안이 사라졌으면 다시 만들어 보내지 않는다 (두 번 발송 방지)."""
+    h, did = auth_headers, drafts["staff"]["id"]
+    _gmail(client, h, did)
+    _approve(client, h, did)
+    fake_gmail.fail_update = 404  # Gmail에서 이미 보내 초안함에서 사라짐
+    res = _send(client, h, did)
+    assert res.status_code == 409
+    assert "사라졌습니다" in res.json()["detail"]
+    assert fake_gmail.sent == []
+    assert not any(c.startswith("create") for c in fake_gmail.calls[1:])  # 새로 만들지 않음
+
+
+def test_gmail_requests_have_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    """외부 호출 시간 제한 (RULES.md). 진짜 연결 함수가 timeout 있는 http로 클라이언트를 만든다."""
+    import googleapiclient.discovery
+
+    from app.core import gmail_client
+
+    seen: dict[str, Any] = {}
+
+    def fake_build(*args: Any, **kwargs: Any) -> str:
+        seen.update(kwargs)
+        return "service"
+
+    monkeypatch.setattr(gmail_client, "get_credentials", lambda scopes=None: object())
+    monkeypatch.setattr(googleapiclient.discovery, "build", fake_build)
+    assert REAL_GMAIL_SERVICE() == "service"
+    assert seen["http"].http.timeout == gmail_draft.TIMEOUT_SEC
