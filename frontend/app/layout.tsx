@@ -93,35 +93,23 @@ function Sidebar({ pathname, user, onLogout }: { pathname: string; user: string;
   const badges = useBadges();
   const activeGroup = groupOfPath(pathname);
   return (
-    <nav
-      className="app-nav"
-      style={{
-        width: 236,
-        flexShrink: 0,
-        padding: "28px 16px 20px",
-        background: color.sidebar,
-        borderTopRightRadius: 48,
-        alignSelf: "stretch",
-        minHeight: "calc(100vh - 36px - 84px)",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <nav className="app-nav" style={{ background: color.sidebar }}>
+      <div className="nav-title">{TEXT.title}</div>
       <div className="nav-label">{TEXT.menu}</div>
       {MENU.map((m) => {
         const active = m.group === "home" ? pathname === "/" : activeGroup === m.group;
         const badge = m.group === "home" ? null : badges[m.group];
         return (
           <Link key={m.href} href={m.href} className={active ? "active" : undefined} aria-current={active ? "page" : undefined}>
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span>{m.label}</span>
-              <span style={{ fontSize: 12, opacity: 0.7 }}>· {m.owner}</span>
+            <span style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "2px 6px" }}>
+              <span style={{ whiteSpace: "nowrap" }}>{m.label}</span>
+              <span className="nav-owner">· {m.owner}</span>
               {badge && <span className="nav-badge">{badge}</span>}
             </span>
           </Link>
         );
       })}
-      <div style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.25)", paddingTop: 12 }}>
+      <div className="nav-bottom">
         <div style={{ display: "flex", gap: 4 }}>
           {BOTTOM.map((b) => (
             <Link key={b.href} href={b.href} className={`small${pathname === b.href ? " active" : ""}`}>
@@ -129,9 +117,9 @@ function Sidebar({ pathname, user, onLogout }: { pathname: string; user: string;
             </Link>
           ))}
         </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 6px 0" }}>
-          <span style={{ color: "#fff", fontSize: 14, fontWeight: 600 }}>👤 {user}</span>
-          <button type="button" onClick={onLogout} style={{ padding: "4px 12px", fontSize: 13, background: "#fff", border: "none" }}>
+        <div className="nav-user">
+          <span>👤 {user}</span>
+          <button type="button" onClick={onLogout}>
             {TEXT.logout}
           </button>
         </div>
@@ -140,66 +128,61 @@ function Sidebar({ pathname, user, onLogout }: { pathname: string; user: string;
   );
 }
 
-function TopBar({ refreshKey, navOpen, onToggleNav }: { refreshKey: string; navOpen: boolean; onToggleNav: () => void }) {
-  // 맨 위 줄은 화면 전체 너비: 왼쪽 프로그램 이름(사이드바 위), 가운데 보고 주차, 오른쪽 실행 기준·알림 종
-  const { state } = useRunStatus();
-  const run = state.kind === "ok" ? state.status.run : null;
-  const now = currentWeek();
+/** 맨 왼쪽 파란 둥근 띠: 프로그램 표시, 메뉴 열기·닫기(☰), 로그인한 사용자 첫 글자 */
+function Rail({ user, navOpen, onToggleNav }: { user: string; navOpen: boolean; onToggleNav: () => void }) {
   return (
-    <header
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        height: 84,
-        padding: "0 32px 0 28px",
-        background: color.surface,
-        position: "relative",
-        zIndex: 40,
-      }}
-    >
+    <div className="app-rail">
+      <span className="rail-logo" aria-hidden title={TEXT.title}>
+        검
+      </span>
       <button
         type="button"
         onClick={onToggleNav}
         aria-label={navOpen ? TEXT.navClose : TEXT.navOpen}
         aria-expanded={navOpen}
         title={navOpen ? TEXT.navClose : TEXT.navOpen}
-        style={{ width: 40, height: 40, padding: 0, flexShrink: 0, fontSize: 20, lineHeight: 1, border: "none", background: color.card }}
       >
         <span aria-hidden>☰</span>
       </button>
-      <div style={{ width: 196, flexShrink: 0, display: "flex", alignItems: "center", gap: 10, fontSize: 17, fontWeight: 800, color: color.primary, lineHeight: 1.3, wordBreak: "keep-all" }}>
-        <span aria-hidden style={{ width: 30, height: 30, borderRadius: 9, background: color.primary, color: "#fff", display: "grid", placeItems: "center", fontSize: 15 }}>검</span>
-        {TEXT.title}
-      </div>
-      <div style={{ fontWeight: 700, background: color.card, padding: "9px 18px", borderRadius: 999, marginLeft: 12 }}>
+      <span className="rail-user" aria-hidden title={user}>
+        {user.slice(0, 1)}
+      </span>
+    </div>
+  );
+}
+
+function TopBar({ refreshKey, navOpen }: { refreshKey: string; navOpen: boolean }) {
+  // 맨 위 줄: 보고 주차(흰 둥근 칸), 지금 주차, 오른쪽 실행 기준·알림 종. 메뉴를 닫으면 프로그램 이름도 보인다
+  const { state } = useRunStatus();
+  const run = state.kind === "ok" ? state.status.run : null;
+  const now = currentWeek();
+  return (
+    <header className="app-top">
+      {!navOpen && <div style={{ fontSize: 17, fontWeight: 800, marginRight: 8, whiteSpace: "nowrap" }}>{TEXT.title}</div>}
+      <div className="top-pill">
         {run ? (
           <>
-            <span style={{ color: color.muted, fontWeight: 500 }}>보고 주차 </span>
+            <span className="top-muted">보고 주차 </span>
             {run.week_label}
-            <span style={{ color: color.muted, fontWeight: 500 }}>
+            <span className="top-muted">
               {" "}
               · {day(run.period_start)} ~ {day(run.period_end)}
             </span>
           </>
         ) : (
-          <span style={{ color: color.muted }}>{state.kind === "loading" ? "" : TEXT.noRun}</span>
+          <span className="top-muted">{state.kind === "loading" ? "" : TEXT.noRun}</span>
         )}
       </div>
-      <div style={{ fontWeight: 700, padding: "9px 4px", whiteSpace: "nowrap" }}>
-        <span style={{ color: color.muted, fontWeight: 500 }}>{TEXT.nowWeek} </span>
+      <div className="top-now">
+        <span className="top-muted">{TEXT.nowWeek} </span>
         {now.label}
-        <span style={{ color: color.muted, fontWeight: 500 }}>
+        <span className="top-muted">
           {" "}
           · {day(now.start)} ~ {day(now.end)}
         </span>
       </div>
       <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
-        {run && (
-          <span style={{ fontSize: 13, color: color.info, background: color.primarySoft, padding: "4px 10px", borderRadius: 999 }}>
-            {ruleText(run)}
-          </span>
-        )}
+        {run && <span className="top-rule">{ruleText(run)}</span>}
         <NoticeBell runId={run?.id ?? null} refreshKey={refreshKey} />
       </div>
     </header>
@@ -273,12 +256,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Suspense fallback={null}>
               <SearchKey onChange={setSearch} />
             </Suspense>
-            <div className="app-frame" style={{ flexDirection: "column" }}>
-              <TopBar refreshKey={refreshKey} navOpen={navOpen} onToggleNav={toggleNav} />
-              <div style={{ display: "flex", flex: 1 }}>
-                {navOpen && <Sidebar pathname={pathname} user={user} onLogout={onLogout} />}
-                <main style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ padding: "8px 36px 32px", maxWidth: 1400 }}>
+            <div className="app-frame">
+              <Rail user={user} navOpen={navOpen} onToggleNav={toggleNav} />
+              {navOpen && <Sidebar pathname={pathname} user={user} onLogout={onLogout} />}
+              <div className={`app-main${pathname === "/" ? " home" : ""}`}>
+                <TopBar refreshKey={refreshKey} navOpen={navOpen} />
+                <main className="app-body" style={{ minWidth: 0 }}>
+                  <div style={{ padding: "12px 36px 36px 30px", maxWidth: 1400 }}>
                     <Suspense fallback={null}>
                       <PageStepBar pathname={pathname} />
                     </Suspense>

@@ -31,12 +31,12 @@ export function StepBar({ group, current }: { group: StepGroup; current: string 
         </p>
       )}
       <nav aria-label={TEXT.label(group)}>
-        <ol style={{ display: "flex", gap: 8, listStyle: "none", margin: 0, padding: 0, flexWrap: "wrap" }}>
+        <ol style={{ display: "flex", gap: 12, listStyle: "none", margin: 0, padding: 0, flexWrap: "wrap" }}>
           {stepsOf(group).map((def, i) => {
             const st = byKey.get(def.key);
             const done = st?.done ?? false;
             const viewing = def.key === current;
-            const border = viewing ? color.primary : done ? color.success : "transparent";
+            const border = viewing ? color.primary : done ? "#bfe3cb" : "transparent";
             return (
               <li key={def.key} style={{ flex: "1 1 140px", minWidth: 130 }}>
                 <Link
@@ -49,9 +49,10 @@ export function StepBar({ group, current }: { group: StepGroup; current: string 
                     padding: "8px 12px",
                     borderRadius: 14,
                     textDecoration: "none",
-                    color: color.text,
-                    background: viewing ? color.primarySoft : color.card,
-                    border: `${viewing ? 2 : 1}px solid ${border}`,
+                    color: viewing ? "#fff" : color.text,
+                    background: viewing ? color.primary : color.card,
+                    border: `1px solid ${border}`,
+                    boxShadow: viewing ? "0 8px 20px rgba(38, 114, 222, 0.3)" : color.shadow,
                   }}
                 >
                   <span
@@ -65,15 +66,15 @@ export function StepBar({ group, current }: { group: StepGroup; current: string 
                       placeItems: "center",
                       fontSize: 13,
                       fontWeight: 800,
-                      color: done || viewing ? "#fff" : color.muted,
-                      background: done ? color.success : viewing ? color.primary : "#e6edf4",
+                      color: viewing ? color.primary : done ? "#fff" : color.muted,
+                      background: viewing ? "#fff" : done ? color.success : "#e6edf4",
                     }}
                   >
                     {done ? "✓" : i + 1}
                   </span>
                   <span style={{ minWidth: 0 }}>
                     <span style={{ display: "block", fontWeight: viewing ? 800 : 600, fontSize: 14 }}>{def.name}</span>
-                    <span style={{ display: "block", fontSize: 12, color: done ? color.success : color.muted }}>
+                    <span style={{ display: "block", fontSize: 12, color: viewing ? "rgba(255,255,255,0.85)" : done ? color.success : color.muted }}>
                       {done ? `${TEXT.done}${st?.note ? ` · ${st.note}` : ""}` : st?.note || (viewing ? TEXT.viewing : " ")}
                     </span>
                   </span>

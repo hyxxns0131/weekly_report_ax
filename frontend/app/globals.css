@@ -1,16 +1,21 @@
-/* 공통 화면 스타일 (KHS). 11/25 테마: 파란 바탕 위 흰 본문 카드, 진한 파랑 사이드바(흰 글자), 옅은 회청색 둥근 카드.
+/* 공통 화면 스타일 (KHS). 11/28 테마: 아주 옅은 회청색 바탕 위 흰 둥근 카드(옅은 그림자),
+   맨 왼쪽 파란 둥근 띠 + 흰 메뉴, 선택한 메뉴는 옅은 파랑, 지금 단계는 꽉 찬 파랑. 홈만 위쪽 파란 그라데이션 띠.
    색 값은 components/ui/tokens.ts와 같게. */
 :root {
-  --text: #1f2a3c;
+  --text: #1d2939;
   --muted: #6b7a90;
-  --border: #e4e9f1;
-  --bg: #ffffff;
+  --info: #1f67c9;
+  --border: #e3e9f2;
+  --bg: #eef3fa;
   --surface: #ffffff;
-  --card: #f2f5fa;
-  --primary: #2463cf;
-  --primary-dark: #1a4fae;
-  --primary-soft: #e8f0fc;
-  --frame: #1f58bd;
+  --card: #ffffff;
+  --field: #f4f7fc;
+  --primary: #2672de;
+  --primary-dark: #1d5fbf;
+  --primary-soft: #e8f2fd;
+  --rail: #2f86ea;
+  --rail-dark: #2369d0;
+  --shadow: 0 4px 18px rgba(30, 70, 140, 0.08);
 }
 
 * { box-sizing: border-box; }
@@ -21,76 +26,152 @@ body {
   font-size: 15px;
   line-height: 1.6;
   color: var(--text);
-  background: var(--frame);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
 
-h1 { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: -0.02em; }
+h1 { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
 h2 { color: var(--text); }
 h3, h4 { color: var(--text); }
 a { color: var(--primary); }
 
-/* 작은 영문식 섹션 제목 (사진의 QUICK ACCESS처럼): 대문자 간격 넓게 */
-.section-label { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; color: #3b4659; margin: 0 0 12px; }
+/* 작은 섹션 제목 */
+.section-label { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; color: #3b4659; margin: 0 0 12px; }
 
-/* 버튼: 흰 바탕 + 옅은 테두리, 주 버튼은 진한 파랑. 모서리는 넉넉히 둥글게 */
+/* 버튼: 흰 바탕 + 옅은 테두리, 주 버튼은 파랑. 모서리는 넉넉히 둥글게 */
 button {
   font: inherit;
   font-size: 14px;
   font-weight: 600;
   color: var(--primary);
   background: var(--surface);
-  border: 1px solid #c9d8f2;
+  border: 1px solid #cfe0f6;
   border-radius: 10px;
   padding: 7px 16px;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 button:hover:not(:disabled) { background: var(--primary-soft); border-color: var(--primary); }
-button:disabled { color: #a3afbf; border-color: #e4e9f1; background: #f5f7fa; cursor: not-allowed; }
-button.primary, button[type="submit"] { color: #fff; background: var(--primary); border-color: var(--primary); }
+button:disabled { color: #a3afbf; border-color: #e3e9f2; background: #f5f7fa; cursor: not-allowed; }
+button.primary, button[type="submit"] { color: #fff; background: var(--primary); border-color: var(--primary); box-shadow: 0 4px 12px rgba(38, 114, 222, 0.25); }
 button.primary:hover:not(:disabled), button[type="submit"]:hover:not(:disabled) { background: var(--primary-dark); }
-button.primary:disabled, button[type="submit"]:disabled { color: #a3afbf; border-color: #e4e9f1; background: #f5f7fa; }
+button.primary:disabled, button[type="submit"]:disabled { color: #a3afbf; border-color: #e3e9f2; background: #f5f7fa; box-shadow: none; }
 
 input, select, textarea {
   font: inherit;
   font-size: 14px;
   color: var(--text);
-  background: var(--card);
-  border: 1px solid transparent;
+  background: var(--field);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 8px 12px;
 }
-input:focus, select:focus, textarea:focus { outline: 2px solid #b5cdf5; border-color: var(--primary); background: #fff; }
+input:focus, select:focus, textarea:focus { outline: 2px solid #bcd6f7; border-color: var(--primary); background: #fff; }
 input::placeholder, textarea::placeholder { color: #9aa7b8; }
 input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); vertical-align: middle; }
 
 fieldset, details, section, aside { border-radius: 16px; }
-fieldset { border: 1px solid var(--border) !important; }
+fieldset { border: 1px solid var(--border) !important; background: var(--surface); }
 legend { font-weight: 700; color: var(--primary); padding: 0 6px; }
 summary { cursor: pointer; font-weight: 600; color: var(--primary); }
 
-/* 표: 머리는 작은 회색 대문자 느낌, 줄 사이만 옅은 선 (사진의 ALL FILES 목록처럼) */
-table { border-radius: 14px; overflow: hidden; background: var(--surface); border-collapse: collapse; }
-th { background: transparent !important; color: #8a96a8; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; border-bottom: 1px solid var(--border); }
+/* 표: 흰 카드 + 옅은 그림자, 머리는 작은 회색 글자, 줄 사이만 옅은 선, 고른 줄은 옅은 파랑 */
+table { border-radius: 14px; overflow: hidden; background: var(--surface); border-collapse: collapse; box-shadow: var(--shadow); }
+th { background: transparent !important; color: #8a96a8; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; border-bottom: 1px solid var(--border); }
 td { font-size: 14px; border-bottom: 1px solid var(--border); }
+tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--primary-soft); }
 
 pre { font-family: inherit; line-height: 1.7; }
 
-/* 바깥 틀: 파란 바탕 위 흰 카드 */
-.app-frame { display: flex; margin: 18px; min-height: calc(100vh - 36px); background: var(--bg); border-radius: 32px; overflow: hidden; box-shadow: 0 12px 40px rgba(10, 40, 100, 0.25); }
+/* ── 바깥 틀 ── 왼쪽: 파란 둥근 띠(.app-rail) + 흰 메뉴(.app-nav), 오른쪽: 맨 위 줄 + 본문 */
+.app-frame { display: flex; align-items: flex-start; min-height: 100vh; background: var(--bg); }
 
-/* 왼쪽 메뉴: 진한 파랑 + 흰 글자, 오른쪽 위 모서리 크게 둥글게 */
-.app-nav { color: #fff; }
-.app-nav a { display: block; padding: 10px 16px; margin: 3px 0; border-radius: 12px; color: rgba(255, 255, 255, 0.82); text-decoration: none; font-weight: 600; }
-.app-nav a:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
-.app-nav a.active { background: #fff; color: var(--primary); font-weight: 800; }
-.app-nav a .nav-badge { margin-left: auto; font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 999px; background: #fff4e5; color: #b45309; }
-.app-nav a.small { display: inline-block; padding: 5px 10px; font-size: 13px; color: rgba(255, 255, 255, 0.85); }
-.app-nav a.small.active { background: #fff; color: var(--primary); }
-.app-nav .nav-label { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; color: rgba(255, 255, 255, 0.6); padding: 0 16px 6px; }
+.app-rail {
+  position: sticky;
+  top: 14px;
+  width: 64px;
+  flex-shrink: 0;
+  margin: 14px 0 14px 14px;
+  height: calc(100vh - 28px);
+  border-radius: 24px;
+  background: linear-gradient(180deg, var(--rail) 0%, var(--rail-dark) 100%);
+  box-shadow: 0 8px 24px rgba(38, 114, 222, 0.28);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 0;
+  color: #fff;
+}
+.app-rail .rail-logo { width: 40px; height: 40px; border-radius: 14px; background: #fff; color: var(--primary); display: grid; place-items: center; font-weight: 900; font-size: 18px; }
+.app-rail button { width: 40px; height: 40px; padding: 0; border: none; border-radius: 14px; font-size: 19px; line-height: 1; color: #fff; background: rgba(255, 255, 255, 0.16); box-shadow: none; }
+.app-rail button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.3); }
+.app-rail .rail-user { margin-top: auto; width: 40px; height: 40px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); color: var(--primary); display: grid; place-items: center; font-weight: 800; font-size: 15px; text-transform: uppercase; }
+
+/* 흰 메뉴: 선택한 메뉴는 옅은 파랑 바탕 + 파랑 글자 */
+.app-nav {
+  position: sticky;
+  top: 14px;
+  width: 236px;
+  flex-shrink: 0;
+  margin: 14px 0 14px 10px;
+  height: calc(100vh - 28px);
+  padding: 22px 14px 18px;
+  background: var(--surface);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+}
+.app-nav .nav-title { font-size: 16px; font-weight: 800; color: var(--text); line-height: 1.35; padding: 0 10px 18px; word-break: keep-all; }
+.app-nav a { display: block; padding: 10px 14px; margin: 3px 0; border-radius: 12px; color: #4a5568; text-decoration: none; font-weight: 600; }
+.app-nav a:hover { background: #f3f7fc; color: var(--text); }
+.app-nav a.active { background: var(--primary-soft); color: var(--primary); font-weight: 800; }
+.app-nav a .nav-owner { font-size: 12px; color: #98a4b6; font-weight: 600; white-space: nowrap; }
+.app-nav a.active .nav-owner { color: #6d9be0; }
+.app-nav a .nav-badge { font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 999px; background: #fff4e5; color: #b45309; white-space: nowrap; }
+.app-nav a.small { display: inline-block; padding: 5px 10px; font-size: 13px; color: #5b6778; }
+.app-nav a.small.active { background: var(--primary-soft); color: var(--primary); }
+.app-nav .nav-label { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; color: #98a4b6; padding: 0 14px 6px; }
+.app-nav .nav-bottom { margin-top: auto; border-top: 1px solid var(--border); padding-top: 12px; }
+.app-nav .nav-user { display: flex; align-items: center; justify-content: space-between; padding: 10px 6px 0; font-size: 14px; font-weight: 600; color: var(--text); }
+.app-nav .nav-user button { padding: 4px 12px; font-size: 13px; }
+
+/* 오른쪽 본문 영역 */
+.app-main { position: relative; flex: 1; min-width: 0; align-self: stretch; }
+
+/* 맨 위 줄: 투명 바탕, 보고 주차는 흰 둥근 칸 */
+.app-top { position: relative; z-index: 40; display: flex; align-items: center; gap: 12px; height: 84px; padding: 14px 36px 0 30px; }
+.app-top .top-pill { font-weight: 700; background: var(--surface); padding: 9px 18px; border-radius: 999px; box-shadow: var(--shadow); white-space: nowrap; }
+.app-top .top-muted { color: var(--muted); font-weight: 500; }
+.app-top .top-now { font-weight: 700; padding: 9px 4px; white-space: nowrap; }
+.app-top .top-rule { font-size: 13px; color: var(--info); background: var(--primary-soft); padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+
+/* 홈만: 위쪽 파란 그라데이션 띠. 맨 위 줄 글자는 흰색, 칸은 반투명 */
+.app-main.home::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 12px;
+  right: 14px;
+  height: 236px;
+  border-radius: 24px;
+  background: linear-gradient(120deg, #1d5fd1 0%, #2f86ea 55%, #5aa8f5 100%);
+  z-index: 0;
+}
+.app-main.home .app-top { color: #fff; }
+.app-main.home .app-top .top-pill { background: rgba(255, 255, 255, 0.18); box-shadow: none; }
+.app-main.home .app-top .top-muted { color: rgba(255, 255, 255, 0.8); }
+.app-main.home .app-top .top-rule { color: #fff; background: rgba(255, 255, 255, 0.2); }
+.app-main.home .app-body { position: relative; z-index: 1; }
+/* 알림 창은 흰 바탕이라 글자를 본래 색으로 */
+.app-main.home .app-top [role="dialog"] { color: var(--text); }
+
+/* 흰 카드 (홈) */
+.white-card { background: var(--surface); border-radius: 20px; box-shadow: var(--shadow); }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
-a.button-link { display: inline-block; font-size: 14px; font-weight: 700; color: #fff; background: var(--primary); border: 1px solid var(--primary); border-radius: 10px; padding: 7px 16px; text-decoration: none; }
+a.button-link { display: inline-block; font-size: 14px; font-weight: 700; color: #fff; background: var(--primary); border: 1px solid var(--primary); border-radius: 10px; padding: 7px 16px; text-decoration: none; box-shadow: 0 4px 12px rgba(38, 114, 222, 0.25); }
 a.button-link:hover { background: var(--primary-dark); }
