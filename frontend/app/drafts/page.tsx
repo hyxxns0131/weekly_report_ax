@@ -10,7 +10,7 @@ import { color } from "../../components/ui/tokens";
 import { getDrafts, makeDrafts } from "../../lib/api/b2/drafts";
 import { buildReport } from "../../lib/api/b2/report";
 import { getSendInfo } from "../../lib/api/b2/send";
-import type { ReportOut } from "../../lib/types/b2";
+import type { ReportOut, SendInfo } from "../../lib/types/b2";
 import type { MailDraft, Run } from "../../lib/types/core";
 import { DraftEditor } from "./_components/DraftEditor";
 import { DraftList } from "./_components/DraftList";
@@ -29,11 +29,14 @@ const TEXT = {
   saveFirst: "저장하지 않은 수정이 있습니다. 먼저 [저장]해야 승인·발송할 수 있습니다.",
 };
 
+// 발송 설정을 못 읽으면 발송을 막아 둔다
+const SEND_OFF: SendInfo = { mail_send_enabled: false, staff_to_count: 0, body_format: "html" };
+
 function Body({ run }: { run: Run }) {
   const [report, setReport] = useState<ReportOut | null>(null);
   const [drafts, setDrafts] = useState<MailDraft[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
-  const [sendEnabled, setSendEnabled] = useState(false);
+  const [sendInfo, setSendInfo] = useState<SendInfo>(SEND_OFF);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   // B2-04: 글상자에 저장하지 않은 수정이 있는지 (DraftEditor가 알려 준다).
@@ -51,7 +54,7 @@ function Body({ run }: { run: Run }) {
 
   useEffect(() => {
     void load();
-    getSendInfo().then((i) => setSendEnabled(i.mail_send_enabled)).catch(() => setSendEnabled(false));
+    getSendInfo().then(setSendInfo).catch(() => setSendInfo(SEND_OFF));
   }, [load]);
 
   // 저장 안 한 수정이 있을 때 창을 닫거나(새로 고침 포함) 다른 메뉴로 가려 하면 먼저 묻는다.
@@ -133,7 +136,7 @@ function Body({ run }: { run: Run }) {
               {/* 저장 안 한 수정이 있으면 승인·발송을 막는다: 화면 글과 승인되는 글이 달라지지 않게 */}
               {dirty && <p style={{ color: color.warning }}>{TEXT.saveFirst}</p>}
               <fieldset disabled={dirty} style={{ border: 0, padding: 0, margin: 0 }}>
-                <SendPanel draft={current} sendEnabled={sendEnabled} onChanged={load} />
+                <SendPanel key={current.id} draft={current} info={sendInfo} onChanged={load} />
               </fieldset>
               <HistoryPanel draft={current} dirty={dirty} onRestored={load} />
             </div>

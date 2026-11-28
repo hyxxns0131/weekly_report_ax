@@ -24,4 +24,6 @@ export interface TipTopic {
 
 export interface SendInfo {
   mail_send_enabled: boolean;
+  staff_to_count: number; // 담당자용 받는 사람 수 (주소는 화면에 오지 않는다)
+  body_format: string; // "html" | "text"
 }

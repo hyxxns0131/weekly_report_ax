@@ -1,5 +1,7 @@
 {
   "_note": "메일 설정 (KHW, 목업). 수신자 그룹은 SAMC 확인 필요. 실제 주소는 .env(GMAIL_STAFF_TO)에만.",
+  "body_format": "html",
+  "_body_format_note": "B2-05 Gmail로 보낼 본문 모양. html = 일반 글 + 표가 있는 HTML을 함께 넣음(메일 프로그램이 고름), text = 일반 글만. 최종은 SAMC 미팅에서 확인",
   "subject_staff": "[SAMC 주간 검역 정보] {week_label} ({period})",
   "subject_customer": "[SAMC] {week_label} 귀사 수입 품목 관련 검역 정보 안내",
   "staff_to_group": "담당자 (GMAIL_STAFF_TO)",
